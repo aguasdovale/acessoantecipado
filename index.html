@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Águas do Vale — Early Access</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --blue:#068FD0; --green:#7EBE50; --navy:#1458A6; --dark:#040f1a; }
+  html, body { height: 100%; }
+  body {
+    background: var(--dark);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden; overflow-y: auto;
+    cursor: none;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(6,143,208,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(6,143,208,.04) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none; z-index: 0;
+  }
+  .cursor {
+    position: fixed; width: 12px; height: 12px;
+    background: var(--blue); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: width .15s, height .15s;
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid rgba(6,143,208,.4); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%,-50%);
+  }
+  .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .star {
+    position: absolute; background: #fff; border-radius: 50%;
+    animation: twinkle var(--d,3s) ease-in-out infinite;
+    animation-delay: var(--delay,0s);
+  }
+  @keyframes twinkle { 0%,100%{opacity:.1} 50%{opacity:.7} }
+  .horizon {
+    position: fixed; bottom: -180px; left: 50%;
+    transform: translateX(-50%);
+    width: 1000px; height: 500px; border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 30%,
+      rgba(6,143,208,.2) 0%, rgba(20,88,166,.1) 40%, transparent 70%);
+    border: 1px solid rgba(6,143,208,.1);
+    pointer-events: none; z-index: 0;
+  }
+  .orb-green {
+    position: fixed; width: 320px; height: 320px; border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(126,190,80,.09) 0%, transparent 70%);
+    filter: blur(60px); top: 10%; left: 5%;
+    pointer-events: none; z-index: 0;
+  }
+  .page {
+    position: relative; z-index: 1;
+    min-height: 100vh; height: auto;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 24px; text-align: center;
+  }
+  .hero-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(64px, 11vw, 130px);
+    line-height: .92; letter-spacing: -.03em;
+    margin-bottom: 28px;
+    animation: fadeUp .7s ease both;
+  }
+  .t-blue {
+    color: transparent;
+    background: linear-gradient(90deg, #068FD0 0%, #3ab6e8 100%);
+    -webkit-background-clip: text; background-clip: text;
+  }
+  .t-outline {
+    display: block; font-style: italic; font-weight: 700;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgba(255,255,255,.28);
+    font-size: .88em;
+  }
+  .hero-sub {
+    max-width: 500px; font-size: 16px; font-weight: 300;
+    color: rgba(255,255,255,.55); line-height: 1.7;
+    margin-bottom: 44px;
+    animation: fadeUp .7s .12s ease both;
+  }
+  .hero-sub strong { color: rgba(255,255,255,.88); font-weight: 500; }
+  .form-wrap {
+    width: 100%; max-width: 400px;
+    animation: fadeUp .7s .22s ease both;
+  }
+  .form-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 20px; padding: 26px 24px 22px;
+    backdrop-filter: blur(16px);
+  }
+  .form-card-label {
+    font-size: 11px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: rgba(255,255,255,.35); margin-bottom: 14px;
+  }
+  .form-field {
+    display: block; width: 100%;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 10px; padding: 13px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; color: #fff; outline: none;
+    margin-bottom: 10px;
+    transition: border-color .2s, background .2s;
+  }
+  .form-field::placeholder { color: rgba(255,255,255,.28); }
+  .form-field:focus { border-color: rgba(6,143,208,.55); background: rgba(6,143,208,.07); }
+  .form-field.error { border-color: rgba(220,60,60,.6); }
+  .form-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--blue) 0%, var(--navy) 100%);
+    border: none; border-radius: 10px; padding: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: #fff; cursor: none;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .form-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 36px rgba(6,143,208,.45); }
+  .form-btn:active { transform: translateY(0); }
+  .form-note { font-size: 11px; color: rgba(255,255,255,.28); text-align: center; margin-top: 11px; }
+  .form-success { display: none; padding: 16px; text-align: center; }
+  .success-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(126,190,80,.15); border: 1px solid rgba(126,190,80,.3);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px; font-size: 20px;
+  }
+  .form-success h3 {
+    font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
+    color: var(--green); margin-bottom: 6px;
+  }
+  .form-success p { font-size: 13px; color: rgba(255,255,255,.4); }
+  .page-footer {
+    position: fixed; bottom: 24px; left: 0; right: 0;
+    text-align: center; font-size: 11px; color: rgba(255,255,255,.18);
+    letter-spacing: .04em; z-index: 1;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+  @media (max-width: 480px) {
+    body { }
+    .page { height: auto; min-height: 100vh; padding: 60px 20px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="stars" id="stars"></div>
+<div class="horizon"></div>
+<div class="orb-green"></div>
+
+<div class="page">
+  <h1 class="hero-title">
+    <span class="t-blue">Monitore</span>
+    <span class="t-outline">cada gota</span>
+  </h1>
+
+  <p class="hero-sub">
+    O app que transforma dados em <strong>consciência ambiental.</strong><br>
+    Qualidade da água em tempo real, alertas inteligentes e relatórios precisos — no seu bolso.
+  </p>
+
+  <div class="form-wrap">
+    <iframe style="min-height:320px;" data-tally-src="https://tally.so/embed/QKx7lY?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+      loading="lazy" width="100%" height="320" frameborder="0" marginheight="0" marginwidth="0"
+      title="Early Access Águas do Vale" id="tallyFrame"></iframe>
+  </div>
+</div>
+
+<p class="page-footer">Águas do Vale &nbsp;·&nbsp; Inovação e Consciência Ambiental</p>
+
+<script>
+  const cur=document.getElementById('cursor');
+  const ring=document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+  (function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing);})();
+  const starsEl=document.getElementById('stars');
+  for(let i=0;i<70;i++){
+    const s=document.createElement('div');
+    const sz=Math.random()*2+.5;
+    s.className='star';
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${2+Math.random()*5}s;--delay:${Math.random()*5}s`;
+    starsEl.appendChild(s);
+  }
+</script>
+<script src="https://tally.so/widgets/embed.js" async></script>
+</body>
+</html>
