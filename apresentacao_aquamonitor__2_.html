@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Águas do Vale — Apresentação do Projeto</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg:       #080e14;
+  --bg2:      #0d1620;
+  --bg3:      #121e2c;
+  --card:     #0e1a26;
+  --border:   #1a3045;
+  --water:    #00b4d8;
+  --water2:   #0077b6;
+  --green:    #06d6a0;
+  --yellow:   #ffd166;
+  --red:      #ef476f;
+  --purple:   #9b5de5;
+  --text:     #d0e8f4;
+  --muted:    #4a7090;
+  --white:    #f0f8ff;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ── NOISE TEXTURE overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: .4;
+}
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 60px 24px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,180,216,.18) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, rgba(6,214,160,.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 70%, rgba(155,93,229,.07) 0%, transparent 60%);
+}
+
+/* Animated water waves behind hero */
+.waves {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 120px;
+  overflow: hidden;
+}
+.waves svg { width: 200%; height: 100%; animation: wave 8s linear infinite; }
+@keyframes wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.hero-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .7rem;
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--water);
+  margin-bottom: 20px;
+  opacity: .9;
+  animation: fadeup .8s ease both;
+}
+
+.hero h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3.5rem, 10vw, 8rem);
+  line-height: .95;
+  letter-spacing: 2px;
+  color: var(--white);
+  margin-bottom: 8px;
+  animation: fadeup .8s .1s ease both;
+}
+
+.hero h1 .accent { color: var(--water); }
+.hero h1 .accent2 { color: var(--green); }
+
+.hero-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(.75rem, 2vw, 1rem);
+  color: var(--muted);
+  letter-spacing: 2px;
+  margin-bottom: 32px;
+  animation: fadeup .8s .2s ease both;
+}
+
+.hero-pills {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 48px;
+  animation: fadeup .8s .3s ease both;
+}
+.pill {
+  background: rgba(0,180,216,.1);
+  border: 1px solid rgba(0,180,216,.3);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .68rem;
+  color: var(--water);
+  letter-spacing: .5px;
+}
+.pill.g { background:rgba(6,214,160,.1); border-color:rgba(6,214,160,.3); color:var(--green); }
+.pill.y { background:rgba(255,209,102,.1); border-color:rgba(255,209,102,.3); color:var(--yellow); }
+.pill.p { background:rgba(155,93,229,.1); border-color:rgba(155,93,229,.3); color:var(--purple); }
+
+/* ── SECTION ── */
+.section { padding: 72px 24px; max-width: 1100px; margin: 0 auto; }
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .65rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--water);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::before { content:''; display:block; width:32px; height:1px; background:var(--water); }
+.section h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1;
+  color: var(--white);
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+.section p {
+  font-size: .97rem;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 680px;
+  margin-bottom: 36px;
+}
+
+/* ── HORIZONTAL RULE ── */
+.hr { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+/* ── ARCH DIAGRAM ── */
+.arch-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  margin: 28px 0;
+  overflow-x: auto;
+}
+.arch-wrap svg { width: 100%; height: auto; min-width: 700px; display: block; }
+
+/* ── CARDS GRID ── */
+.cards { display: grid; gap: 16px; margin: 28px 0; }
+.cards.c3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.cards.c2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+.cards.c4 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s, transform .2s;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--card-accent, var(--water));
+}
+.card:hover { border-color: var(--card-accent, var(--water)); transform: translateY(-2px); }
+
+.card-icon { font-size: 1.8rem; margin-bottom: 12px; }
+.card h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.25rem;
+  letter-spacing: 1px;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+.card p { font-size: .84rem; color: var(--muted); line-height: 1.6; margin: 0; }
+.card .mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .72rem;
+  color: var(--card-accent, var(--water));
+  margin-bottom: 6px;
+  display: block;
+}
+.card ul { list-style: none; margin-top: 10px; }
+.card ul li {
+  font-size: .82rem;
+  color: var(--muted);
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card ul li:last-child { border: none; }
+.card ul li .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .7rem;
+  color: var(--card-accent, var(--water));
+}
+
+/* ── SENSOR TABLE ── */
+.sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 28px 0;
+}
+.sensor-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.sensor-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--s-color, var(--water));
+  border-radius: 0 0 10px 10px;
+}
+.sensor-item .s-icon { font-size: 1.6rem; margin-bottom: 8px; }
+.sensor-item .s-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  color: var(--white);
+  letter-spacing: 1px;
+}
+.sensor-item .s-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .75rem;
+  color: var(--s-color, var(--water));
+  margin: 4px 0;
+}
+.sensor-item .s-hw {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .65rem;
+  color: var(--muted);
+}
+
+/* ── FLOW DIAGRAM ── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  margin: 28px 0;
+  justify-content: center;
+}
+.flow-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  text-align: center;
+  min-width: 120px;
+}
+.flow-item .fi-icon { font-size: 1.4rem; margin-bottom: 4px; }
+.flow-item .fi-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .68rem;
+  color: var(--text);
+  letter-spacing: .5px;
+}
+.flow-item .fi-sub {
+  font-size: .7rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.flow-arrow {
+  font-size: 1.2rem;
+  color: var(--border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* ── DASHBOARD MOCKUP ── */
+.dash-mock {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 28px 0;
+}
+.dash-topbar {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.dash-dots { display: flex; gap: 6px; }
+.dash-dot { width: 10px; height: 10px; border-radius: 50%; }
+.dash-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .72rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.dash-body { padding: 20px; }
+.dash-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.kpi {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+.kpi-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.kpi-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+.kpi-unit {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .65rem;
+  color: var(--water);
+}
+.kpi-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .6rem;
+  margin-top: 4px;
+}
+.ok { background:rgba(6,214,160,.15); color:var(--green); }
+.warn { background:rgba(255,209,102,.15); color:var(--yellow); }
+.bad { background:rgba(239,71,111,.15); color:var(--red); }
+
+/* sparkline (svg mini chart) */
+.dash-chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.dash-chart {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+.dash-chart-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.dash-chart svg { width: 100%; height: 56px; display: block; }
+
+/* ── APP MOCKUP ── */
+.app-mockups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 28px 0;
+}
+.phone-frame {
+  background: var(--bg3);
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 9/19;
+  max-width: 240px;
+  margin: 0 auto;
+}
+.phone-notch {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 60px; height: 22px;
+  background: var(--bg);
+  border-radius: 0 0 14px 14px;
+  z-index: 2;
+}
+.phone-screen {
+  width: 100%; height: 100%;
+  padding: 24px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.app-header {
+  background: var(--water2);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+.app-header .app-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .95rem;
+  color: #fff;
+  letter-spacing: 1px;
+}
+.app-header .app-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .52rem;
+  color: rgba(255,255,255,.6);
+}
+.app-kpi-mini {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+.akpi {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 6px;
+  text-align: center;
+}
+.akpi .av {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  color: var(--white);
+  line-height: 1;
+}
+.akpi .al {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .48rem;
+  color: var(--muted);
+}
+.app-map {
+  background: #0a1e30;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.app-map svg { width: 100%; height: 100%; }
+.app-status {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.app-status .st-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .52rem;
+  color: var(--muted);
+}
+.app-status .st-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .8rem;
+  color: var(--green);
+}
+
+/* ── TIMELINE ── */
+.timeline { margin: 28px 0; }
+.tl-item {
+  display: flex;
+  gap: 20px;
+  padding-bottom: 24px;
+  position: relative;
+}
+.tl-item::before {
+  content: '';
+  position: absolute;
+  left: 19px; top: 40px;
+  width: 2px; bottom: 0;
+  background: var(--border);
+}
+.tl-item:last-child::before { display: none; }
+.tl-num {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  background: var(--bg3);
+  border: 2px solid var(--water);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .75rem;
+  color: var(--water);
+  font-weight: 700;
+}
+.tl-body { padding-top: 8px; }
+.tl-body h4 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  color: var(--white);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.tl-body p { font-size: .84rem; color: var(--muted); line-height: 1.6; margin: 0; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeup {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg3);
+  border-top: 1px solid var(--border);
+  padding: 32px 24px;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .68rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  line-height: 1.8;
+}
+
+@media (max-width: 600px) {
+  .dash-chart-row { grid-template-columns: 1fr; }
+  .flow { gap: 4px; }
+  .flow-item { min-width: 90px; padding: 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<section class="hero">
+  <div class="hero-tag">Projeto de Extensão Universitária · Rio Paraíba do Sul</div>
+  <h1>
+    <span class="accent">Águas</span><br>
+    <span class="accent2">do Vale</span><br>
+
+  </h1>
+  <p class="hero-sub">SJC · PINDAMONHANGABA · GUARATINGUETÁ</p>
+  <div class="hero-pills">
+    <span class="pill">pH · OD · Turbidez · EC · T°</span>
+    <span class="pill g">Arduino Cloud</span>
+    <span class="pill y">Solar Autônomo</span>
+    <span class="pill p">Dashboard + App</span>
+    <span class="pill">3 Pontos de Coleta</span>
+  </div>
+
+  <div class="waves">
+    <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+      <path d="M0,60 C200,100 400,20 600,60 C800,100 1000,20 1200,60 L1200,120 L0,120 Z"
+            fill="rgba(0,180,216,.08)"/>
+      <path d="M0,80 C200,40 400,110 600,70 C800,30 1000,90 1200,60 L1200,120 L0,120 Z"
+            fill="rgba(0,180,216,.05)"/>
+    </svg>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ══════════════════ SOBRE O PROJETO ══════════════════ -->
+<section class="section reveal">
+  <div class="section-label">00 — Sobre o Projeto</div>
+  <h2>O QUE É O ÁGUAS DO VALE</h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start;margin-top:28px;">
+
+    <div>
+      <p style="color:var(--text);font-size:.97rem;line-height:1.85;margin-bottom:20px;">
+        O projeto <strong style="color:var(--water)">Águas do Vale</strong> propõe o desenvolvimento de uma rede de estações de monitoramento contínuo da qualidade da água do Rio Paraíba do Sul, implantadas nos municípios de São José dos Campos, Pindamonhangaba e Guaratinguetá. Do ponto de vista do hardware, cada estação é composta por dois microcontroladores <strong style="color:var(--green)">Arduino UNO</strong> operando como dispositivos escravos, responsáveis pela leitura dos sensores de pH, oxigênio dissolvido, turbidez e condutividade elétrica via protocolo UART, e por um <strong style="color:var(--green)">ESP32800L</strong> atuando como controlador mestre, integrando ainda um sensor de temperatura DS18B20, módulo RTC DS3231 para registro de data e hora, cartão SD para armazenamento local e display LCD 20×4 para visualização em campo. A transmissão dos dados para a nuvem é realizada via módulo <strong style="color:var(--yellow)">GSM integrado ao ESP32800L</strong>, eliminando a dependência de redes WiFi locais e garantindo conectividade contínua mesmo em áreas de infraestrutura limitada. Todo o sistema opera de forma autônoma com painel solar de 30W e bateria de 12V 20Ah.
+      </p>
+      <p style="color:var(--text);font-size:.97rem;line-height:1.85;">
+        Do ponto de vista do software, os dados coletados são enviados em tempo real para a plataforma <strong style="color:var(--purple)">Arduino Cloud</strong>, onde são processados, armazenados e disponibilizados por meio de um <strong style="color:var(--purple)">dashboard web</strong> e de um <strong style="color:var(--purple)">aplicativo mobile</strong>, permitindo o acompanhamento simultâneo dos três pontos de monitoramento com atualização contínua dos parâmetros físico-químicos.
+      </p>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;overflow:hidden;">
+    <svg viewBox="0 0 420 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+    <defs>
+      <linearGradient id="sky0" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#050d14"/><stop offset="100%" stop-color="#0a1e30"/>
+      </linearGradient>
+      <linearGradient id="rio0" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#003a55" stop-opacity=".8"/>
+        <stop offset="100%" stop-color="#001e30" stop-opacity="1"/>
+      </linearGradient>
+      <linearGradient id="soil0" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#2a1a08"/><stop offset="100%" stop-color="#150c04"/>
+      </linearGradient>
+      <radialGradient id="glow0" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#00b4d8" stop-opacity=".25"/>
+        <stop offset="100%" stop-color="#00b4d8" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="420" height="360" fill="url(#sky0)"/>
+    <circle cx="40"  cy="20" r="1"   fill="#fff" opacity=".6"/>
+    <circle cx="90"  cy="12" r="1.2" fill="#fff" opacity=".5"/>
+    <circle cx="160" cy="18" r="1"   fill="#fff" opacity=".4"/>
+    <circle cx="240" cy="8"  r="1.3" fill="#fff" opacity=".6"/>
+    <circle cx="310" cy="22" r="1"   fill="#fff" opacity=".5"/>
+    <circle cx="380" cy="14" r="1.2" fill="#fff" opacity=".4"/>
+    <circle cx="60"  cy="40" r=".8"  fill="#fff" opacity=".3"/>
+    <circle cx="340" cy="38" r=".8"  fill="#fff" opacity=".3"/>
+    <circle cx="380" cy="35" r="14" fill="#c8d8e8" opacity=".15"/>
+    <circle cx="386" cy="30" r="11" fill="url(#sky0)"/>
+    <rect x="0" y="240" width="260" height="120" fill="url(#soil0)"/>
+    <path d="M0,240 Q65,232 130,238 Q195,244 260,238 L260,248 L0,250 Z" fill="#2d5a18" opacity=".7"/>
+    <rect x="245" y="160" width="175" height="200" fill="url(#rio0)"/>
+    <path d="M245,185 Q300,177 360,185 Q395,190 420,183" fill="none" stroke="#00b4d8" stroke-width="1.5" opacity=".3"/>
+    <path d="M245,210 Q300,202 360,210 Q395,215 420,208" fill="none" stroke="#00b4d8" stroke-width="1" opacity=".2"/>
+    <text x="340" y="225" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#00b4d8" opacity=".5">Rio Paraíba</text>
+    <text x="340" y="237" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8" fill="#00b4d8" opacity=".4">do Sul</text>
+    <rect x="178" y="218" width="68" height="95" rx="4" fill="#111" stroke="#222" stroke-width="1.5"/>
+    <ellipse cx="212" cy="250" rx="34" ry="6" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+    <ellipse cx="212" cy="278" rx="34" ry="6" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+    <g fill="#000" opacity=".6">
+      <circle cx="190" cy="295" r="2.5"/><circle cx="200" cy="295" r="2.5"/>
+      <circle cx="210" cy="295" r="2.5"/><circle cx="220" cy="295" r="2.5"/>
+      <circle cx="230" cy="295" r="2.5"/>
+      <circle cx="190" cy="308" r="2.5"/><circle cx="200" cy="308" r="2.5"/>
+      <circle cx="210" cy="308" r="2.5"/><circle cx="220" cy="308" r="2.5"/>
+      <circle cx="230" cy="308" r="2.5"/>
+    </g>
+    <rect x="180" y="285" width="64" height="26" fill="#003a55" opacity=".5" rx="1"/>
+    <ellipse cx="212" cy="218" rx="36" ry="8" fill="#1a1a1a" stroke="#222" stroke-width="1.5"/>
+    <ellipse cx="212" cy="285" rx="44" ry="30" fill="url(#glow0)"/>
+    <line x1="196" y1="222" x2="196" y2="308" stroke="#06d6a0" stroke-width="2" stroke-dasharray="4,3" opacity=".7"/>
+    <line x1="205" y1="222" x2="205" y2="308" stroke="#4499ee" stroke-width="2" stroke-dasharray="4,3" opacity=".7"/>
+    <line x1="214" y1="222" x2="214" y2="308" stroke="#cc88ff" stroke-width="2" stroke-dasharray="4,3" opacity=".7"/>
+    <line x1="223" y1="222" x2="223" y2="308" stroke="#ffaa44" stroke-width="2" stroke-dasharray="4,3" opacity=".7"/>
+    <line x1="232" y1="222" x2="232" y2="308" stroke="#ef476f" stroke-width="2" stroke-dasharray="4,3" opacity=".6"/>
+    <rect x="190" y="192" width="44" height="28" rx="4" fill="#c8d8e8" stroke="#8899aa" stroke-width="1.2" opacity=".9"/>
+    <rect x="193" y="195" width="38" height="22" rx="3" fill="#0d1620" stroke="#1a3045" stroke-width="1" opacity=".85"/>
+    <text x="212" y="208" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="5.5" fill="#06d6a0">ESP32800L</text>
+    <text x="212" y="216" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="5" fill="#4a7090">Arduino UNO x2</text>
+    <circle cx="194" cy="195" r="2" fill="#666"/>
+    <circle cx="230" cy="195" r="2" fill="#666"/>
+    <circle cx="194" cy="218" r="2" fill="#666"/>
+    <circle cx="230" cy="218" r="2" fill="#666"/>
+    <rect x="106" y="88" width="10" height="155" rx="3" fill="#888" stroke="#666" stroke-width="1"/>
+    <rect x="74" y="52" width="74" height="42" rx="3" fill="#1a2a4a" stroke="#0a1828" stroke-width="1.5" transform="rotate(-15,111,73)"/>
+    <g transform="rotate(-15,111,73)" fill="none" stroke="#2a4a8a" stroke-width=".7">
+      <line x1="111" y1="52" x2="111" y2="94"/>
+      <line x1="74" y1="73" x2="148" y2="73"/>
+      <line x1="92" y1="52" x2="92" y2="94" opacity=".5"/>
+      <line x1="130" y1="52" x2="130" y2="94" opacity=".5"/>
+    </g>
+    <text x="111" y="47" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="7.5" fill="#ffd166" opacity=".9">&#9728; 30W</text>
+    <rect x="86" y="140" width="50" height="36" rx="4" fill="#0e1a26" stroke="#1a3045" stroke-width="1.2"/>
+    <text x="111" y="153" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="5.5" fill="#ffd166">Bateria 12V</text>
+    <text x="111" y="163" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="5.5" fill="#06d6a0">Ctrl Solar</text>
+    <text x="111" y="173" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="5" fill="#4a7090">GSM Cloud</text>
+    <ellipse cx="111" cy="243" rx="18" ry="5" fill="#1a0e04" stroke="#2a1808" stroke-width="1"/>
+    <path d="M136,210 Q160,214 178,218" fill="none" stroke="#ffd166" stroke-width="2.5" stroke-dasharray="5,3" opacity=".7"/>
+    <g fill="none" stroke="#00b4d8" stroke-width="1.2" opacity=".5">
+      <path d="M111,88 Q90,70 94,50"/>
+      <path d="M111,88 Q80,65 85,38"/>
+      <path d="M111,88 Q132,70 128,50"/>
+      <path d="M111,88 Q142,65 137,38"/>
+    </g>
+    <text x="111" y="30" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="7" fill="#00b4d8" opacity=".7">GSM &#8594; &#9729;</text>
+    <text x="212" y="355" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="7.5" fill="#4a7090">Sumidouro 325L · camara de medicao</text>
+    <circle cx="14"  cy="320" r="4" fill="#06d6a0"/><text x="22"  y="323" font-family="JetBrains Mono,monospace" font-size="7" fill="#4a7090">pH</text>
+    <circle cx="40"  cy="320" r="4" fill="#4499ee"/><text x="48"  y="323" font-family="JetBrains Mono,monospace" font-size="7" fill="#4a7090">OD</text>
+    <circle cx="66"  cy="320" r="4" fill="#cc88ff"/><text x="74"  y="323" font-family="JetBrains Mono,monospace" font-size="7" fill="#4a7090">NTU</text>
+    <circle cx="96"  cy="320" r="4" fill="#ffaa44"/><text x="104" y="323" font-family="JetBrains Mono,monospace" font-size="7" fill="#4a7090">EC</text>
+    <circle cx="122" cy="320" r="4" fill="#ef476f"/><text x="130" y="323" font-family="JetBrains Mono,monospace" font-size="7" fill="#4a7090">T</text>
+    <rect x="290" y="290" width="118" height="46" rx="8" fill="#001a10" stroke="#003a20" stroke-width="1.2"/>
+    <text x="349" y="307" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="7" fill="#4a7090">QUALIDADE ATUAL</text>
+    <circle cx="315" cy="323" r="5" fill="#06d6a0" opacity=".9"/>
+    <text x="325" y="327" font-family="sans-serif" font-size="14" fill="#06d6a0">BOA</text>
+    <text x="395" y="322" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="7" fill="#4a7090">CONAMA 357</text>
+    </svg>
+    </div>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ══════════════════ ARQUITETURA ══════════════════ -->
+<section class="section reveal">
+  <div class="section-label">01 — Arquitetura do Sistema</div>
+  <h2>VISÃO GERAL DO HARDWARE</h2>
+  <p>Dois Arduinos UNO coletam os dados dos sensores e enviam ao ESP32 via UART. O ESP32 centraliza, grava no SD, exibe no LCD e envia para a nuvem via GSM. Tudo alimentado por painel solar + bateria.</p>
+
+  <div class="arch-wrap">
+  <svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 Z" fill="#00b4d8"/>
+    </marker>
+    <marker id="ag" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 Z" fill="#06d6a0"/>
+    </marker>
+    <marker id="ay" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 Z" fill="#ffd166"/>
+    </marker>
+  </defs>
+
+  <!-- ── ARDUINO 1 ── -->
+  <rect x="20" y="60" width="160" height="200" rx="10" fill="#0e1a26" stroke="#1a3045" stroke-width="1.5"/>
+  <rect x="20" y="60" width="160" height="28" rx="10" fill="#0a3040"/>
+  <text x="100" y="79" text-anchor="middle" font-family="'Bebas Neue'" font-size="13" fill="#00b4d8" letter-spacing="1">ARDUINO #1</text>
+
+  <rect x="34" y="100" width="132" height="22" rx="4" fill="#0a1a0a" stroke="#1a3a1a" stroke-width="1"/>
+  <text x="100" y="115" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#06d6a0">Sensor pH — pino A0</text>
+
+  <rect x="34" y="128" width="132" height="22" rx="4" fill="#0a1a0a" stroke="#1a3a1a" stroke-width="1"/>
+  <text x="100" y="143" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#4499ee">Shield OD — D2/D3</text>
+
+  <rect x="34" y="156" width="132" height="22" rx="4" fill="#0d1a2e" stroke="#1a2a4a" stroke-width="1"/>
+  <text x="100" y="171" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#00b4d8">SoftwareSerial</text>
+  <text x="100" y="181" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7" fill="#4a7090">AcquaShield OD</text>
+
+  <rect x="34" y="198" width="132" height="40" rx="4" fill="#1a1000" stroke="#3a2800" stroke-width="1"/>
+  <text x="100" y="213" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#ffd166">TX → ESP32 Serial1</text>
+  <text x="100" y="225" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#ffd166">{"ph":7.23,"od":8.5}</text>
+  <text x="100" y="235" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7" fill="#7a5a20">GPIO16/17 · 9600bps</text>
+
+  <!-- ── ARDUINO 2 ── -->
+  <rect x="720" y="60" width="160" height="200" rx="10" fill="#0e1a26" stroke="#1a3045" stroke-width="1.5"/>
+  <rect x="720" y="60" width="160" height="28" rx="10" fill="#200a30"/>
+  <text x="800" y="79" text-anchor="middle" font-family="'Bebas Neue'" font-size="13" fill="#9b5de5" letter-spacing="1">ARDUINO #2</text>
+
+  <rect x="734" y="100" width="132" height="22" rx="4" fill="#0a1a0a" stroke="#2a0a3a" stroke-width="1"/>
+  <text x="800" y="115" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#cc88ff">Turbidez — pino A1</text>
+
+  <rect x="734" y="128" width="132" height="22" rx="4" fill="#0a1a0a" stroke="#2a0a3a" stroke-width="1"/>
+  <text x="800" y="143" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#ffaa44">Shield EC — D2/D3</text>
+
+  <rect x="734" y="156" width="132" height="22" rx="4" fill="#1a0a2e" stroke="#2a1a4a" stroke-width="1"/>
+  <text x="800" y="171" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#9b5de5">SoftwareSerial</text>
+  <text x="800" y="181" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7" fill="#4a7090">AcquaShield EC</text>
+
+  <rect x="734" y="198" width="132" height="40" rx="4" fill="#1a1000" stroke="#3a2800" stroke-width="1"/>
+  <text x="800" y="213" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#ffd166">TX → ESP32 Serial2</text>
+  <text x="800" y="225" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#ffd166">{"ntu":3.2,"ec":248}</text>
+  <text x="800" y="235" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7" fill="#7a5a20">GPIO18/19 · 9600bps</text>
+
+  <!-- ── ESP32 CENTRAL ── -->
+  <rect x="330" y="30" width="240" height="260" rx="12" fill="#0e1a26" stroke="#00b4d8" stroke-width="2"/>
+  <rect x="330" y="30" width="240" height="30" rx="12" fill="#003a4a"/>
+  <text x="450" y="51" text-anchor="middle" font-family="'Bebas Neue'" font-size="15" fill="#00b4d8" letter-spacing="2">ESP32 — MASTER</text>
+
+  <!-- peripherals inside ESP32 box -->
+  <rect x="346" y="72" width="100" height="18" rx="3" fill="#0a1820" stroke="#1a3040" stroke-width="1"/>
+  <text x="396" y="84" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#06d6a0">RTC DS3231</text>
+
+  <rect x="454" y="72" width="100" height="18" rx="3" fill="#0a1820" stroke="#1a3040" stroke-width="1"/>
+  <text x="504" y="84" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#06d6a0">SD Card</text>
+
+  <rect x="346" y="98" width="100" height="18" rx="3" fill="#0a1820" stroke="#1a3040" stroke-width="1"/>
+  <text x="396" y="110" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#4499ee">LCD 20×4 I²C</text>
+
+  <rect x="454" y="98" width="100" height="18" rx="3" fill="#0a1820" stroke="#1a3040" stroke-width="1"/>
+  <text x="504" y="110" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#4499ee">DS18B20</text>
+
+  <!-- polling command -->
+  <rect x="346" y="128" width="208" height="30" rx="4" fill="#1a1000" stroke="#3a2000" stroke-width="1"/>
+  <text x="450" y="141" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#ffd166">Polling: envia 'R' → recebe JSON</text>
+  <text x="450" y="153" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7" fill="#7a5a20">Ciclo: 5 segundos · timeout: 3s</text>
+
+  <!-- output row -->
+  <rect x="346" y="168" width="100" height="34" rx="4" fill="#001a10" stroke="#003a20" stroke-width="1"/>
+  <text x="396" y="182" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#06d6a0">Log CSV</text>
+  <text x="396" y="194" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7" fill="#1a4a30">SD + timestamp</text>
+
+  <rect x="454" y="168" width="100" height="34" rx="4" fill="#001020" stroke="#002040" stroke-width="1"/>
+  <text x="504" y="182" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#00b4d8">☁ Arduino</text>
+  <text x="504" y="194" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#00b4d8">Cloud WiFi</text>
+
+  <!-- classification -->
+  <rect x="346" y="212" width="208" height="60" rx="4" fill="#0d0d1a" stroke="#1a1a3a" stroke-width="1"/>
+  <text x="450" y="227" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#9b5de5">Classificação qualidade água</text>
+  <text x="360" y="244" font-family="'JetBrains Mono'" font-size="7.5" fill="#06d6a0">● BOA</text>
+  <text x="404" y="244" font-family="'JetBrains Mono'" font-size="7.5" fill="#ffd166">● ATENÇÃO</text>
+  <text x="466" y="244" font-family="'JetBrains Mono'" font-size="7.5" fill="#ef476f">● RUIM</text>
+  <text x="450" y="262" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7" fill="#4a7090">pH 6.5–8.5 · NTU≤5 · OD≥5</text>
+
+  <!-- UART arrows -->
+  <line x1="180" y1="210" x2="325" y2="160" stroke="#ffd166" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#ay)"/>
+  <text x="240" y="175" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#ffd166">UART Serial1</text>
+
+  <line x1="720" y1="210" x2="575" y2="160" stroke="#ffd166" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#ay)"/>
+  <text x="660" y="175" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#ffd166">UART Serial2</text>
+
+  <!-- Cloud arrow up -->
+  <line x1="450" y1="30" x2="450" y2="14" stroke="#00b4d8" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="450" y="10" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#00b4d8">☁ Arduino Cloud · WiFi 2.4GHz</text>
+
+  </svg>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ══════════════════ SENSORES ══════════════════ -->
+<section class="section reveal">
+  <div class="section-label">02 — Sensores</div>
+  <h2>OS 5 PARÂMETROS MONITORADOS</h2>
+  <p>Cada parâmetro é medido por um sensor especializado, com calibração própria e filtro digital EMA para suavizar ruídos de leitura.</p>
+
+  <div class="sensor-grid">
+    <div class="sensor-item" style="--s-color:#06d6a0">
+      <div class="s-icon">🧪</div>
+      <div class="s-name">pH</div>
+      <div class="s-val">0.0 – 14.0</div>
+      <div class="s-hw">PH-4502C · Arduino#1 A0</div>
+    </div>
+    <div class="sensor-item" style="--s-color:#4499ee">
+      <div class="s-icon">💧</div>
+      <div class="s-name">OXIGÊNIO</div>
+      <div class="s-val">0 – 20 mg/L</div>
+      <div class="s-hw">Shield OD · AcquaShield</div>
+    </div>
+    <div class="sensor-item" style="--s-color:#cc88ff">
+      <div class="s-icon">🌊</div>
+      <div class="s-name">TURBIDEZ</div>
+      <div class="s-val">0 – 180 NTU</div>
+      <div class="s-hw">ST100 · Arduino#2 A1</div>
+    </div>
+    <div class="sensor-item" style="--s-color:#ffaa44">
+      <div class="s-icon">⚡</div>
+      <div class="s-name">CONDUT.</div>
+      <div class="s-val">0 – 2000 µS/cm</div>
+      <div class="s-hw">Shield EC · AcquaShield</div>
+    </div>
+    <div class="sensor-item" style="--s-color:#ef476f">
+      <div class="s-icon">🌡️</div>
+      <div class="s-name">TEMPERATURA</div>
+      <div class="s-val">-55 – 125 °C</div>
+      <div class="s-hw">DS18B20 · ESP32 GPIO23</div>
+    </div>
+  </div>
+
+  <div class="cards c3">
+    <div class="card" style="--card-accent:#06d6a0">
+      <span class="mono">Filtro digital</span>
+      <h3>EMA — Exponential Moving Average</h3>
+      <p>Todos os sensores usam filtro passa-baixa digital com α=0.05, eliminando ruídos do ADC sem atrasar as leituras reais.</p>
+      <ul>
+        <li><span>Amostras pH</span><span class="val">100 × 2ms</span></li>
+        <li><span>Amostras turbidez</span><span class="val">500 × 1ms</span></li>
+        <li><span>Alpha (suavização)</span><span class="val">0.05</span></li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent:#ffd166">
+      <span class="mono">Calibração</span>
+      <h3>Pontos de Calibração em Campo</h3>
+      <p>Calibração com soluções tampão antes de cada período de medição, com valores gravados no SD Card com timestamp.</p>
+      <ul>
+        <li><span>pH</span><span class="val">Tampão 4.0 e 7.0</span></li>
+        <li><span>EC</span><span class="val">1413 µS/cm padrão</span></li>
+        <li><span>Turbidez</span><span class="val">Água destilada 0 NTU</span></li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent:#9b5de5">
+      <span class="mono">Classificação CONAMA</span>
+      <h3>Padrão de Referência</h3>
+      <p>Os dados são comparados aos padrões da Resolução CONAMA 357/2005 para rios de Classe 2.</p>
+      <ul>
+        <li><span>pH</span><span class="val">6.5 – 8.5</span></li>
+        <li><span>OD mínimo</span><span class="val">≥ 5.0 mg/L</span></li>
+        <li><span>Turbidez máx.</span><span class="val">≤ 100 NTU</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ══════════════════ FLUXO DE DADOS ══════════════════ -->
+<section class="section reveal">
+  <div class="section-label">03 — Fluxo de Dados</div>
+  <h2>DADO DO SENSOR À NUVEM</h2>
+  <p>O caminho completo de uma leitura: do sensor físico até o dashboard web e o aplicativo mobile, em menos de 10 segundos.</p>
+
+  <div class="flow">
+    <div class="flow-item">
+      <div class="fi-icon">🔬</div>
+      <div class="fi-label">SENSOR</div>
+      <div class="fi-sub">físico</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">
+      <div class="fi-icon">🔵</div>
+      <div class="fi-label">ARDUINO</div>
+      <div class="fi-sub">escravo</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">
+      <div class="fi-icon">📡</div>
+      <div class="fi-label">UART JSON</div>
+      <div class="fi-sub">Serial 9600</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">
+      <div class="fi-icon">🟢</div>
+      <div class="fi-label">ESP32</div>
+      <div class="fi-sub">master</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">
+      <div class="fi-icon">💾</div>
+      <div class="fi-label">SD CARD</div>
+      <div class="fi-sub">CSV log</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">
+      <div class="fi-icon">☁️</div>
+      <div class="fi-label">ARDUINO</div>
+      <div class="fi-sub">Cloud WiFi</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">
+      <div class="fi-icon">📊</div>
+      <div class="fi-label">DASHBOARD</div>
+      <div class="fi-sub">web + app</div>
+    </div>
+  </div>
+
+  <div class="cards c2">
+    <div class="card" style="--card-accent:#ffd166">
+      <span class="mono">Formato JSON — Arduino#1</span>
+      <h3>Protocolo de Comunicação UART</h3>
+      <p>O ESP32 envia o caractere <strong>'R'</strong> (request) a cada 5s. O Arduino responde com um JSON compacto terminado em <code>\n</code>.</p>
+      <ul>
+        <li><span>Arduino#1 responde</span><span class="val">{"ph":7.23,"od":8.5,"odt":25.1}</span></li>
+        <li><span>Arduino#2 responde</span><span class="val">{"ntu":3.2,"ec":248,"ect":24.8}</span></li>
+        <li><span>Timeout</span><span class="val">3 segundos</span></li>
+        <li><span>Ciclo de polling</span><span class="val">5 segundos</span></li>
+      </ul>
+    </div>
+    <div class="card" style="--card-accent:#06d6a0">
+      <span class="mono">Formato CSV — SD Card</span>
+      <h3>Log Local de Segurança</h3>
+      <p>Todos os dados são gravados em <code>agua.csv</code> no cartão SD com timestamp do RTC DS3231, garantindo registro mesmo sem WiFi.</p>
+      <ul>
+        <li><span>Header</span><span class="val">datetime,ph,od,ntu,ec,t°</span></li>
+        <li><span>Intervalo</span><span class="val">5 segundos</span></li>
+        <li><span>Formato data</span><span class="val">YYYY-MM-DD HH:MM:SS</span></li>
+        <li><span>Capacidade</span><span class="val">&gt;1M leituras/GB</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ══════════════════ DASHBOARD MOCKUP ══════════════════ -->
+<section class="section reveal">
+  <div class="section-label">04 — Interface Web</div>
+  <h2>DASHBOARD ARDUINO CLOUD</h2>
+  <p>Painel online acessível em qualquer navegador. Mostra os 5 parâmetros em tempo real, histórico em gráfico e status de qualidade por ponto.</p>
+
+  <div class="dash-mock">
+    <div class="dash-topbar">
+      <div class="dash-dots">
+        <div class="dash-dot" style="background:#ef476f"></div>
+        <div class="dash-dot" style="background:#ffd166"></div>
+        <div class="dash-dot" style="background:#06d6a0"></div>
+      </div>
+      <div class="dash-title">app.arduino.cc/dashboards · Águas do Vale · ● AO VIVO</div>
+    </div>
+    <div class="dash-body">
+      <div class="dash-kpi-row">
+        <div class="kpi">
+          <div class="kpi-label">pH — SJC</div>
+          <div class="kpi-val" style="color:#06d6a0">7.23</div>
+          <div class="kpi-unit">adimensional</div>
+          <div class="kpi-badge ok">● BOA</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">OD — SJC</div>
+          <div class="kpi-val" style="color:#4499ee">8.50</div>
+          <div class="kpi-unit">mg/L</div>
+          <div class="kpi-badge ok">● BOA</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Turbidez — Pinda</div>
+          <div class="kpi-val" style="color:#ffd166">42.3</div>
+          <div class="kpi-unit">NTU</div>
+          <div class="kpi-badge warn">● ATENÇÃO</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">EC — Pinda</div>
+          <div class="kpi-val" style="color:#ffaa44">248</div>
+          <div class="kpi-unit">µS/cm</div>
+          <div class="kpi-badge ok">● BOA</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Temperatura — Guará</div>
+          <div class="kpi-val" style="color:#ef476f">26.4</div>
+          <div class="kpi-unit">°C</div>
+          <div class="kpi-badge ok">● NORMAL</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Última leitura</div>
+          <div class="kpi-val" style="color:#00b4d8;font-size:1.2rem">14:32</div>
+          <div class="kpi-unit">atualização contínua</div>
+          <div class="kpi-badge ok">● ONLINE</div>
+        </div>
+      </div>
+      <div class="dash-chart-row">
+        <div class="dash-chart">
+          <div class="dash-chart-title">pH — últimas 24h · São José dos Campos</div>
+          <svg viewBox="0 0 300 56" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="0,40 25,35 50,38 75,32 100,28 125,30 150,25 175,28 200,30 225,26 250,28 275,25 300,24"
+              fill="none" stroke="#06d6a0" stroke-width="2" stroke-linejoin="round"/>
+            <polyline points="0,40 25,35 50,38 75,32 100,28 125,30 150,25 175,28 200,30 225,26 250,28 275,25 300,24 300,56 0,56"
+              fill="url(#g1)" opacity=".3"/>
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#06d6a0" stop-opacity=".6"/>
+                <stop offset="100%" stop-color="#06d6a0" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <!-- threshold lines -->
+            <line x1="0" y1="8" x2="300" y2="8" stroke="#ef476f" stroke-width="1" stroke-dasharray="4,3" opacity=".4"/>
+            <line x1="0" y1="48" x2="300" y2="48" stroke="#ef476f" stroke-width="1" stroke-dasharray="4,3" opacity=".4"/>
+            <text x="290" y="6" font-size="7" fill="#ef476f" font-family="monospace" text-anchor="end">8.5 max</text>
+            <text x="290" y="52" font-size="7" fill="#ef476f" font-family="monospace" text-anchor="end">6.5 min</text>
+          </svg>
+        </div>
+        <div class="dash-chart">
+          <div class="dash-chart-title">Turbidez — últimas 24h · Pindamonhangaba</div>
+          <svg viewBox="0 0 300 56" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="0,46 25,42 50,38 75,30 100,22 125,18 150,24 175,30 200,28 225,20 250,24 275,28 300,32"
+              fill="none" stroke="#cc88ff" stroke-width="2" stroke-linejoin="round"/>
+            <polyline points="0,46 25,42 50,38 75,30 100,22 125,18 150,24 175,30 200,28 225,20 250,24 275,28 300,32 300,56 0,56"
+              fill="url(#g2)" opacity=".25"/>
+            <defs>
+              <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#cc88ff" stop-opacity=".6"/>
+                <stop offset="100%" stop-color="#cc88ff" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <line x1="0" y1="10" x2="300" y2="10" stroke="#ffd166" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/>
+            <text x="290" y="8" font-size="7" fill="#ffd166" font-family="monospace" text-anchor="end">100 NTU</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ══════════════════ APP MOCKUP ══════════════════ -->
+<section class="section reveal">
+  <div class="section-label">05 — Aplicativo Mobile</div>
+  <h2>APP ARDUINO IOT REMOTE</h2>
+  <p>O mesmo painel acessível pelo aplicativo oficial do Arduino Cloud para iOS e Android. Três telas — uma por ponto de monitoramento — com atualização em tempo real via push notification.</p>
+
+  <div class="app-mockups">
+    <!-- App SJC -->
+    <div>
+      <div style="text-align:center;margin-bottom:10px;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted);">São José dos Campos</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="app-header">
+            <div class="app-title">Águas do Vale</div>
+            <div class="app-sub">São José dos Campos · AO VIVO</div>
+          </div>
+          <div class="app-kpi-mini">
+            <div class="akpi">
+              <div class="av" style="color:#06d6a0">7.23</div>
+              <div class="al">pH</div>
+            </div>
+            <div class="akpi">
+              <div class="av" style="color:#4499ee">8.50</div>
+              <div class="al">OD mg/L</div>
+            </div>
+            <div class="akpi">
+              <div class="av" style="color:#cc88ff">3.2</div>
+              <div class="al">NTU</div>
+            </div>
+            <div class="akpi">
+              <div class="av" style="color:#ef476f">25.4</div>
+              <div class="al">Temp °C</div>
+            </div>
+          </div>
+          <div class="app-map">
+            <svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+              <rect width="160" height="80" fill="#0a1e30"/>
+              <path d="M0,45 Q40,35 80,42 Q120,50 160,40" fill="none" stroke="#0077b6" stroke-width="8" opacity=".5"/>
+              <path d="M0,48 Q40,38 80,45 Q120,53 160,43" fill="none" stroke="#00b4d8" stroke-width="3" opacity=".6"/>
+              <circle cx="60" cy="42" r="6" fill="#06d6a0" opacity=".9"/>
+              <circle cx="60" cy="42" r="10" fill="#06d6a0" opacity=".2"/>
+              <text x="60" y="30" text-anchor="middle" font-size="7" fill="#06d6a0" font-family="monospace">SJC</text>
+            </svg>
+          </div>
+          <div class="app-status">
+            <div class="st-label">QUALIDADE</div>
+            <div class="st-val">● BOA</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Pinda -->
+    <div>
+      <div style="text-align:center;margin-bottom:10px;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted);">Pindamonhangaba</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="app-header" style="background:#005f73">
+            <div class="app-title">Águas do Vale</div>
+            <div class="app-sub">Pindamonhangaba · AO VIVO</div>
+          </div>
+          <div class="app-kpi-mini">
+            <div class="akpi">
+              <div class="av" style="color:#06d6a0">7.08</div>
+              <div class="al">pH</div>
+            </div>
+            <div class="akpi">
+              <div class="av" style="color:#4499ee">6.20</div>
+              <div class="al">OD mg/L</div>
+            </div>
+            <div class="akpi">
+              <div class="av" style="color:#ffd166">42.3</div>
+              <div class="al">NTU</div>
+            </div>
+            <div class="akpi">
+              <div class="av" style="color:#ef476f">26.1</div>
+              <div class="al">Temp °C</div>
+            </div>
+          </div>
+          <div class="app-map">
+            <svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+              <rect width="160" height="80" fill="#0a1e30"/>
+              <path d="M0,45 Q40,35 80,42 Q120,50 160,40" fill="none" stroke="#0077b6" stroke-width="8" opacity=".5"/>
+              <path d="M0,48 Q40,38 80,45 Q120,53 160,43" fill="none" stroke="#00b4d8" stroke-width="3" opacity=".6"/>
+              <circle cx="80" cy="43" r="6" fill="#ffd166" opacity=".9"/>
+              <circle cx="80" cy="43" r="10" fill="#ffd166" opacity=".2"/>
+              <text x="80" y="30" text-anchor="middle" font-size="7" fill="#ffd166" font-family="monospace">PINDA</text>
+            </svg>
+          </div>
+          <div class="app-status">
+            <div class="st-label">QUALIDADE</div>
+            <div class="st-val" style="color:#ffd166">● ATENÇÃO</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Guará -->
+    <div>
+      <div style="text-align:center;margin-bottom:10px;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted);">Guaratinguetá</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="app-header" style="background:#1b4332">
+            <div class="app-title">Águas do Vale</div>
+            <div class="app-sub">Guaratinguetá · AO VIVO</div>
+          </div>
+          <div class="app-kpi-mini">
+            <div class="akpi">
+              <div class="av" style="color:#06d6a0">7.45</div>
+              <div class="al">pH</div>
+            </div>
+            <div class="akpi">
+              <div class="av" style="color:#4499ee">7.10</div>
+              <div class="al">OD mg/L</div>
+            </div>
+            <div class="akpi">
+              <div class="av" style="color:#cc88ff">18.5</div>
+              <div class="al">NTU</div>
+            </div>
+            <div class="akpi">
+              <div class="av" style="color:#ef476f">25.8</div>
+              <div class="al">Temp °C</div>
+            </div>
+          </div>
+          <div class="app-map">
+            <svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+              <rect width="160" height="80" fill="#0a1e30"/>
+              <path d="M0,45 Q40,35 80,42 Q120,50 160,40" fill="none" stroke="#0077b6" stroke-width="8" opacity=".5"/>
+              <path d="M0,48 Q40,38 80,45 Q120,53 160,43" fill="none" stroke="#00b4d8" stroke-width="3" opacity=".6"/>
+              <circle cx="110" cy="44" r="6" fill="#06d6a0" opacity=".9"/>
+              <circle cx="110" cy="44" r="10" fill="#06d6a0" opacity=".2"/>
+              <text x="110" y="30" text-anchor="middle" font-size="7" fill="#06d6a0" font-family="monospace">GUARÁ</text>
+            </svg>
+          </div>
+          <div class="app-status">
+            <div class="st-label">QUALIDADE</div>
+            <div class="st-val">● BOA</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ══════════════════ HARDWARE RESUMO ══════════════════ -->
+<section class="section reveal">
+  <div class="section-label">06 — Hardware</div>
+  <h2>COMPONENTES POR ESTAÇÃO</h2>
+
+  <div class="cards c4">
+    <div class="card" style="--card-accent:#00b4d8">
+      <div class="card-icon">🟢</div>
+      <span class="mono">Master · WiFi · Cloud</span>
+      <h3>ESP32</h3>
+      <p>Centraliza dados, grava SD, exibe LCD, envia para Arduino Cloud. GPIO16/17/18/19 UART, GPIO21/22 I²C, GPIO23 OneWire.</p>
+    </div>
+    <div class="card" style="--card-accent:#06d6a0">
+      <div class="card-icon">🔵</div>
+      <span class="mono">Escravo #1 · pH + OD</span>
+      <h3>Arduino UNO #1</h3>
+      <p>Lê pH no A0 com 100 amostras/ciclo. Comunica com Shield OD via SoftwareSerial D2/D3. Responde JSON ao ESP32.</p>
+    </div>
+    <div class="card" style="--card-accent:#9b5de5">
+      <div class="card-icon">🟣</div>
+      <span class="mono">Escravo #2 · Turbidez + EC</span>
+      <h3>Arduino UNO #2</h3>
+      <p>Lê turbidez no A1 com 500 amostras/ciclo. Comunica com Shield EC via SoftwareSerial D2/D3. Responde JSON ao ESP32.</p>
+    </div>
+    <div class="card" style="--card-accent:#ffd166">
+      <div class="card-icon">☀️</div>
+      <span class="mono">Energia autônoma</span>
+      <h3>Solar 30W + 12V 20Ah</h3>
+      <p>Painel solar 30W + bateria VRLA 12V 20Ah. Autonomia &gt;4 dias sem sol. Controlador PWM 10A + conversor 12→5V 3A.</p>
+    </div>
+    <div class="card" style="--card-accent:#ef476f">
+      <div class="card-icon">🛢️</div>
+      <span class="mono">Câmara de medição</span>
+      <h3>Sumidouro 325L</h3>
+      <p>Rotomold PEBDL preto. Ø70×98cm. Semi-enterrado na margem. Furos como stilling well natural. 15kg vazio.</p>
+    </div>
+    <div class="card" style="--card-accent:#06d6a0">
+      <div class="card-icon">📦</div>
+      <span class="mono">Proteção IP66</span>
+      <h3>Caixa Hermética</h3>
+      <p>Tampa transparente com prensa-cabos IP68. Aparafusada na tampa do sumidouro com silicone. Eletrônica acima d'água.</p>
+    </div>
+    <div class="card" style="--card-accent:#4499ee">
+      <div class="card-icon">💾</div>
+      <span class="mono">Backup local</span>
+      <h3>RTC + SD Card</h3>
+      <p>DS3231 garante timestamp preciso mesmo sem WiFi. SD Card grava CSV com todas as leituras. Backup independente da nuvem.</p>
+    </div>
+    <div class="card" style="--card-accent:#cc88ff">
+      <div class="card-icon">🖥️</div>
+      <span class="mono">Interface local</span>
+      <h3>LCD 20×4 I²C</h3>
+      <p>3 telas rotativas: pH+OD / Turbidez+EC / Temperatura+Data. Atualização a cada 4 segundos. Endereço I²C 0x27.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ══════════════════ PRÓXIMOS PASSOS ══════════════════ -->
+<section class="section reveal">
+  <div class="section-label">07 — Roadmap</div>
+  <h2>PRÓXIMOS PASSOS</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-num">1</div>
+      <div class="tl-body">
+        <h4>MONTAGEM E TESTES EM BANCADA</h4>
+        <p>Integrar todos os módulos, testar comunicação UART entre os 3 dispositivos, calibrar sensores com soluções padrão e validar o envio de dados para o Arduino Cloud.</p>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-num">2</div>
+      <div class="tl-body">
+        <h4>PREPARAÇÃO DAS CÂMARAS (SUMIDOUROS)</h4>
+        <p>Adquirir 3 sumidouros Rotomold 325L, instalar barras de suporte internas, prensa-cabos, caixas IP66 nas tampas e testar vedação completa com imersão.</p>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-num">3</div>
+      <div class="tl-body">
+        <h4>INSTALAÇÃO NO CAMPO — SJC (PILOTO)</h4>
+        <p>Instalar o primeiro ponto em São José dos Campos como piloto. Validar dados contra amostras laboratoriais coletadas simultaneamente.</p>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-num">4</div>
+      <div class="tl-body">
+        <h4>EXPANSÃO PARA PINDA E GUARATINGUETÁ</h4>
+        <p>Após validação do piloto, instalar os outros dois pontos. Configurar dashboard comparativo com os 3 pontos simultâneos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Águas do Vale · Projeto de Extensão Universitária<br>
+  SÃO JOSÉ DOS CAMPOS · PINDAMONHANGABA · GUARATINGUETÁ · RIO PARAÍBA DO SUL<br>
+  Arduino UNO × 2 · ESP32 · AcquaShield OD/EC · pH-4502C · ST100 · DS18B20 · DS3231 · Arduino Cloud
+</footer>
+
+<script>
+// Intersection Observer for reveal animations
+const els = document.querySelectorAll('.reveal');
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+els.forEach(el => obs.observe(el));
+</script>
+
+</body>
+</html>
