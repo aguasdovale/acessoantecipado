@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Águas do Vale — São José dos Campos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base:    #0b0e14;
+    --bg-panel:   #111520;
+    --bg-panel2:  #161b28;
+    --bg-header:  #0d1117;
+    --border:     #1f2937;
+    --border2:    #2d3748;
+    --text:       #e2e8f0;
+    --text-dim:   #6b7280;
+    --text-muted: #374151;
+    --accent:     #3b82f6;
+    --green:      #22c55e;
+    --yellow:     #eab308;
+    --red:        #ef4444;
+    --cyan:       #06b6d4;
+    --point:      #38bdf8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+
+  .logo { display: flex; align-items: center; gap: 10px; }
+
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--cyan));
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  .logo-text { font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+
+  .logo-sub {
+    font-size: 11px; color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace; letter-spacing: 2px;
+  }
+
+  .breadcrumb { display: flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: 13px; }
+  .breadcrumb span { color: var(--text); }
+
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--green);
+  }
+
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green); animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+  .clock { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-dim); }
+
+  .refresh-btn {
+    background: var(--bg-panel2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 14px; color: var(--text-dim);
+    cursor: pointer; font-family: 'Rajdhani', sans-serif;
+    font-size: 13px; font-weight: 500; transition: all 0.2s;
+  }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── SUBBAR ── */
+  .subbar {
+    background: var(--bg-header); border-bottom: 1px solid var(--border);
+    padding: 0 20px; height: 36px;
+    display: flex; align-items: center; gap: 16px;
+  }
+
+  .point-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.3);
+    border-radius: 4px; padding: 3px 14px;
+    font-size: 12px; font-weight: 600; color: var(--point);
+    letter-spacing: 0.5px;
+  }
+
+  .point-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--point); }
+
+  .subbar-coords {
+    font-size: 11px; color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .rio-tag {
+    margin-left: auto; font-size: 11px; color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace; opacity: 0.7;
+  }
+
+  /* ── GRID ── */
+  .dashboard {
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 4px; overflow: hidden;
+    transition: border-color 0.2s; min-width: 0;
+  }
+  .panel:hover { border-color: var(--border2); }
+
+  .panel-header {
+    padding: 8px 12px 6px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .panel-title {
+    font-size: 13px; font-weight: 600; color: var(--text-dim);
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+
+  .panel-meta { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+  .panel-body { padding: 10px 12px; }
+
+  /* ── GAUGE ROW ── */
+  .gauge-grid {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .gauge-panel {
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 4px; overflow: hidden;
+  }
+  .gauge-panel:hover { border-color: var(--border2); }
+
+  .gauge-panel-header {
+    padding: 7px 12px 6px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .gauge-title { font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  .gauge-unit  { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+  .gauge-body {
+    padding: 12px 10px 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+
+  .gauge-svg-wrap { position: relative; width: 130px; height: 76px; }
+  .gauge-svg-wrap svg { width: 130px; height: 76px; }
+
+  .gauge-value-center {
+    position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+    text-align: center; white-space: nowrap;
+  }
+
+  .gauge-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px; font-weight: 600; line-height: 1;
+  }
+
+  .gauge-status {
+    font-size: 9px; font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;
+  }
+
+  /* stat strip below gauge */
+  .gauge-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 3px;
+  }
+
+  .gauge-stat {
+    background: var(--bg-panel2); border-radius: 3px;
+    padding: 4px 0; text-align: center;
+  }
+
+  .gauge-stat-label { font-size: 9px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+  .gauge-stat-val   { font-size: 12px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--text-dim); margin-top: 1px; }
+
+  /* ── CHARTS ── */
+  .chart-wrap      { position: relative; height: 170px; padding: 8px 0 0; }
+  .chart-wrap-tall { position: relative; height: 210px; padding: 8px 0 0; }
+
+  /* ── MAP ── */
+  .map-body { padding: 0; height: 230px; }
+  #leafletMap { width: 100%; height: 100%; }
+  .leaflet-container { background: #0d1117 !important; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+
+  th {
+    padding: 7px 12px; text-align: left; color: var(--text-dim);
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 1px solid var(--border); font-weight: 500;
+  }
+
+  td { padding: 6px 12px; border-bottom: 1px solid rgba(31,41,55,0.5); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+  .badge-green  { background: rgba(34,197,94,0.15);  color: var(--green);  border: 1px solid rgba(34,197,94,0.3); }
+  .badge-yellow { background: rgba(234,179,8,0.15);  color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+  .badge-red    { background: rgba(239,68,68,0.15);  color: var(--red);    border: 1px solid rgba(239,68,68,0.3); }
+
+  /* ── UPDATE BAR ── */
+  .update-bar {
+    grid-column: 1 / -1;
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 4px; padding: 6px 14px;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim);
+  }
+  .update-bar span { color: var(--text); }
+
+  /* ── LOADING ── */
+  .loading-overlay {
+    position: fixed; inset: 0; background: var(--bg-base);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 999; gap: 16px; transition: opacity 0.5s;
+  }
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+  .loader-ring {
+    width: 48px; height: 48px;
+    border: 3px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loader-text { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-dim); letter-spacing: 2px; }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loader-ring"></div>
+  <div class="loader-text">CONECTANDO AO ARDUINO CLOUD...</div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">
+      <div class="logo-icon">💧</div>
+      <div>
+        <div class="logo-text">ÁGUAS DO VALE</div>
+        <div class="logo-sub">UNESP · MONITORAMENTO HÍDRICO</div>
+      </div>
+    </div>
+    <div class="breadcrumb">/ Dashboards / <span>São José dos Campos</span></div>
+  </div>
+  <div class="topbar-right">
+    <div class="status-pill"><div class="status-dot"></div><span id="connStatus">CONECTANDO</span></div>
+    <div class="clock" id="clock">--:--:--</div>
+    <button class="refresh-btn" onclick="fetchData()">↻ Atualizar</button>
+  </div>
+</div>
+
+<!-- SUBBAR -->
+<div class="subbar">
+  <div class="point-badge"><div class="point-dot"></div>P1 — São José dos Campos</div>
+  <div class="subbar-coords">23°11′S 45°55′O · Rio Paraíba do Sul</div>
+  <div class="rio-tag">AUTO-REFRESH 10s · CONAMA 357</div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard">
+
+  <!-- STATUS BAR -->
+  <div class="update-bar">
+    <span>Última leitura:</span> <span id="lastUpdate">--</span>
+    &nbsp;·&nbsp; <span>Thing ID:</span> <span id="thingIdDisplay">SEU_THING_ID</span>
+    &nbsp;·&nbsp; <span>Intervalo:</span> <span>10s</span>
+    &nbsp;·&nbsp; <span id="apiStatus">Aguardando dados...</span>
+  </div>
+
+  <!-- ── GAUGES ── -->
+  <div class="gauge-grid">
+
+    <!-- pH -->
+    <div class="gauge-panel">
+      <div class="gauge-panel-header">
+        <div class="gauge-title">pH</div>
+        <div class="gauge-unit">adimensional · ideal 6–8</div>
+      </div>
+      <div class="gauge-body">
+        <div class="gauge-svg-wrap">
+          <svg viewBox="0 0 130 76" id="gauge-ph-svg"></svg>
+          <div class="gauge-value-center">
+            <div class="gauge-val" id="gval-ph">—</div>
+            <div class="gauge-status" id="gstatus-ph">—</div>
+          </div>
+        </div>
+        <div class="gauge-stats">
+          <div class="gauge-stat"><div class="gauge-stat-label">Mín</div><div class="gauge-stat-val" id="stat-ph-min">—</div></div>
+          <div class="gauge-stat"><div class="gauge-stat-label">Méd</div><div class="gauge-stat-val" id="stat-ph-avg">—</div></div>
+          <div class="gauge-stat"><div class="gauge-stat-label">Máx</div><div class="gauge-stat-val" id="stat-ph-max">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Temperatura -->
+    <div class="gauge-panel">
+      <div class="gauge-panel-header">
+        <div class="gauge-title">Temperatura</div>
+        <div class="gauge-unit">°C · ideal 18–25</div>
+      </div>
+      <div class="gauge-body">
+        <div class="gauge-svg-wrap">
+          <svg viewBox="0 0 130 76" id="gauge-temp-svg"></svg>
+          <div class="gauge-value-center">
+            <div class="gauge-val" id="gval-temp">—</div>
+            <div class="gauge-status" id="gstatus-temp">—</div>
+          </div>
+        </div>
+        <div class="gauge-stats">
+          <div class="gauge-stat"><div class="gauge-stat-label">Mín</div><div class="gauge-stat-val" id="stat-temp-min">—</div></div>
+          <div class="gauge-stat"><div class="gauge-stat-label">Méd</div><div class="gauge-stat-val" id="stat-temp-avg">—</div></div>
+          <div class="gauge-stat"><div class="gauge-stat-label">Máx</div><div class="gauge-stat-val" id="stat-temp-max">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OD -->
+    <div class="gauge-panel">
+      <div class="gauge-panel-header">
+        <div class="gauge-title">O₂ Dissolvido</div>
+        <div class="gauge-unit">mg/L · mín 6</div>
+      </div>
+      <div class="gauge-body">
+        <div class="gauge-svg-wrap">
+          <svg viewBox="0 0 130 76" id="gauge-od-svg"></svg>
+          <div class="gauge-value-center">
+            <div class="gauge-val" id="gval-od">—</div>
+            <div class="gauge-status" id="gstatus-od">—</div>
+          </div>
+        </div>
+        <div class="gauge-stats">
+          <div class="gauge-stat"><div class="gauge-stat-label">Mín</div><div class="gauge-stat-val" id="stat-od-min">—</div></div>
+          <div class="gauge-stat"><div class="gauge-stat-label">Méd</div><div class="gauge-stat-val" id="stat-od-avg">—</div></div>
+          <div class="gauge-stat"><div class="gauge-stat-label">Máx</div><div class="gauge-stat-val" id="stat-od-max">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EC -->
+    <div class="gauge-panel">
+      <div class="gauge-panel-header">
+        <div class="gauge-title">Condutividade</div>
+        <div class="gauge-unit">µS/cm · lim 1000</div>
+      </div>
+      <div class="gauge-body">
+        <div class="gauge-svg-wrap">
+          <svg viewBox="0 0 130 76" id="gauge-ec-svg"></svg>
+          <div class="gauge-value-center">
+            <div class="gauge-val" id="gval-ec">—</div>
+            <div class="gauge-status" id="gstatus-ec">—</div>
+          </div>
+        </div>
+        <div class="gauge-stats">
+          <div class="gauge-stat"><div class="gauge-stat-label">Mín</div><div class="gauge-stat-val" id="stat-ec-min">—</div></div>
+          <div class="gauge-stat"><div class="gauge-stat-label">Méd</div><div class="gauge-stat-val" id="stat-ec-avg">—</div></div>
+          <div class="gauge-stat"><div class="gauge-stat-label">Máx</div><div class="gauge-stat-val" id="stat-ec-max">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Turbidez -->
+    <div class="gauge-panel">
+      <div class="gauge-panel-header">
+        <div class="gauge-title">Turbidez</div>
+        <div class="gauge-unit">NTU · lim 40</div>
+      </div>
+      <div class="gauge-body">
+        <div class="gauge-svg-wrap">
+          <svg viewBox="0 0 130 76" id="gauge-turb-svg"></svg>
+          <div class="gauge-value-center">
+            <div class="gauge-val" id="gval-turb">—</div>
+            <div class="gauge-status" id="gstatus-turb">—</div>
+          </div>
+        </div>
+        <div class="gauge-stats">
+          <div class="gauge-stat"><div class="gauge-stat-label">Mín</div><div class="gauge-stat-val" id="stat-turb-min">—</div></div>
+          <div class="gauge-stat"><div class="gauge-stat-label">Méd</div><div class="gauge-stat-val" id="stat-turb-avg">—</div></div>
+          <div class="gauge-stat"><div class="gauge-stat-label">Máx</div><div class="gauge-stat-val" id="stat-turb-max">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: pH histórico (8col) + Mapa (4col) -->
+  <div class="panel" style="grid-column:1 / span 8; min-width:0;">
+    <div class="panel-header">
+      <div class="panel-title">pH — Histórico</div>
+      <div class="panel-meta">últimas 20 leituras · São José dos Campos</div>
+    </div>
+    <div class="panel-body">
+      <div class="chart-wrap-tall"><canvas id="chartPH"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel" style="grid-column:9 / span 4; min-width:0;">
+    <div class="panel-header">
+      <div class="panel-title">Ponto de Coleta</div>
+      <div class="panel-meta">Rio Paraíba do Sul — SJC</div>
+    </div>
+    <div class="map-body"><div id="leafletMap"></div></div>
+  </div>
+
+  <!-- ROW 3: Temperatura (6col) + OD (6col) -->
+  <div class="panel" style="grid-column:1 / span 6; min-width:0;">
+    <div class="panel-header">
+      <div class="panel-title">Temperatura</div>
+      <div class="panel-meta">°C · histórico</div>
+    </div>
+    <div class="panel-body">
+      <div class="chart-wrap"><canvas id="chartTemp"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel" style="grid-column:7 / span 6; min-width:0;">
+    <div class="panel-header">
+      <div class="panel-title">O₂ Dissolvido</div>
+      <div class="panel-meta">mg/L · mín ideal: 6</div>
+    </div>
+    <div class="panel-body">
+      <div class="chart-wrap"><canvas id="chartOD"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ROW 4: EC (6col) + Turbidez (6col) -->
+  <div class="panel" style="grid-column:1 / span 6; min-width:0;">
+    <div class="panel-header">
+      <div class="panel-title">Condutividade Elétrica</div>
+      <div class="panel-meta">µS/cm · limite CONAMA: 1000</div>
+    </div>
+    <div class="panel-body">
+      <div class="chart-wrap"><canvas id="chartEC"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel" style="grid-column:7 / span 6; min-width:0;">
+    <div class="panel-header">
+      <div class="panel-title">Turbidez</div>
+      <div class="panel-meta">NTU · CONAMA 357 · limite Classe II: 40</div>
+    </div>
+    <div class="panel-body">
+      <div class="chart-wrap"><canvas id="chartTurb"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="panel" style="grid-column:1 / -1; min-width:0;">
+    <div class="panel-header">
+      <div class="panel-title">Leitura Atual — São José dos Campos</div>
+      <div class="panel-meta" id="tableTime">--</div>
+    </div>
+    <div class="panel-body table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Ponto</th>
+            <th>Local</th>
+            <th>pH</th>
+            <th>Temperatura (°C)</th>
+            <th>O₂ Dissolvido (mg/L)</th>
+            <th>Condutividade (µS/cm)</th>
+            <th>Turbidez (NTU)</th>
+            <th>Status Geral</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:18px;">Aguardando dados...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────
+// Gere as credenciais em: https://app.arduino.cc/api-keys
+const CLIENT_ID     = 'SEU_CLIENT_ID';
+const CLIENT_SECRET = 'SEU_CLIENT_SECRET';
+const THING_ID      = 'SEU_THING_ID';
+
+// Nomes exatos das variáveis no seu Thing do Arduino Cloud
+const VAR = {
+  pH:   'pH',
+  temp: 'temperatura',
+  od:   'od',
+  ec:   'ec',
+  turb: 'turbidez',
+};
+
+// Thresholds CONAMA 357
+const THRESH = {
+  pH:   { g:[6,8],    y1:[5,6],    y2:[8,9],      min:0,  max:14   },
+  temp: { g:[18,25],  y1:[12,18],  y2:[25,32],    min:0,  max:40   },
+  od:   { g:[6,12],   y1:[4,6],                   min:0,  max:20   },
+  ec:   { g:[50,500], y1:[10,50],  y2:[500,1000], min:0,  max:1200 },
+  turb: { g:[0,40],   y1:[40,100],                min:0,  max:180  },
+};
+
+const STATUS_LABEL = { '#22c55e':'IDEAL', '#eab308':'ATENÇÃO', '#ef4444':'ALERTA' };
+
+// ── STATE ──────────────────────────────────────────────────────
+let token = '';
+const MAX_HIST = 20;
+let hist = { pH:[], temp:[], od:[], ec:[], turb:[] };
+let cur  = { pH:null, temp:null, od:null, ec:null, turb:null };
+
+// ── CLOCK ──────────────────────────────────────────────────────
+function tick() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('pt-BR'); }
+setInterval(tick, 1000);
+tick();
+
+// ── TOKEN ──────────────────────────────────────────────────────
+async function getToken() {
+  try {
+    const r = await fetch('https://api2.arduino.cc/iot/v1/clients/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `grant_type=client_credentials&client_id=${CLIENT_ID}` +
+            `&client_secret=${encodeURIComponent(CLIENT_SECRET)}` +
+            `&audience=https%3A%2F%2Fapi2.arduino.cc%2Fiot`,
+    });
+    const j = await r.json();
+    token = j.access_token || '';
+    return !!token;
+  } catch { return false; }
+}
+
+// ── FETCH ──────────────────────────────────────────────────────
+async function fetchData() {
+  if (!token) {
+    const ok = await getToken();
+    if (!ok) {
+      document.getElementById('apiStatus').textContent = '✗ Falha ao obter token';
+      document.getElementById('loadingOverlay').classList.add('hidden');
+      return;
+    }
+  }
+
+  try {
+    const r = await fetch(
+      `https://api2.arduino.cc/iot/v2/things/${THING_ID}/properties`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (r.status === 401) { token = ''; await getToken(); return; }
+
+    const props = await r.json();
+    const raw = {};
+    props.forEach(p => { raw[p.name] = parseFloat(p.last_value); });
+
+    cur.pH   = isFinite(raw[VAR.pH])   ? raw[VAR.pH]   : null;
+    cur.temp = isFinite(raw[VAR.temp]) ? raw[VAR.temp] : null;
+    cur.od   = isFinite(raw[VAR.od])   ? raw[VAR.od]   : null;
+    cur.ec   = isFinite(raw[VAR.ec])   ? raw[VAR.ec]   : null;
+    cur.turb = isFinite(raw[VAR.turb]) ? raw[VAR.turb] : null;
+
+    // Acumula histórico
+    ['pH','temp','od','ec','turb'].forEach(k => {
+      if (cur[k] !== null) {
+        hist[k].push(cur[k]);
+        if (hist[k].length > MAX_HIST) hist[k].shift();
+      }
+    });
+
+    const now = new Date().toLocaleString('pt-BR');
+    document.getElementById('connStatus').textContent    = 'ONLINE';
+    document.getElementById('apiStatus').textContent     = '✓ Dados recebidos';
+    document.getElementById('lastUpdate').textContent    = now;
+    document.getElementById('tableTime').textContent     = now;
+    document.getElementById('thingIdDisplay').textContent = THING_ID;
+
+    render();
+    document.getElementById('loadingOverlay').classList.add('hidden');
+
+  } catch(e) {
+    document.getElementById('apiStatus').textContent = '✗ ' + e.message;
+    token = '';
+  }
+}
+
+// ── COLOR ──────────────────────────────────────────────────────
+function color(type, val) {
+  if (val === null) return '#374151';
+  const t = THRESH[type];
+  if (val >= t.g[0]  && val <= t.g[1])  return '#22c55e';
+  if (t.y2 && val >= t.y2[0] && val <= t.y2[1]) return '#eab308';
+  if (val >= t.y1[0] && val <= t.y1[1]) return '#eab308';
+  return '#ef4444';
+}
+
+// ── GAUGE ──────────────────────────────────────────────────────
+function drawGauge(svgId, value, type) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const t   = THRESH[type];
+  const pct = value !== null
+    ? Math.min(1, Math.max(0, (value - t.min) / (t.max - t.min)))
+    : 0;
+  const c = color(type, value);
+  const cx = 65, cy = 72, r = 54;
+
+  const arc = a => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  const [sx, sy] = arc(Math.PI);
+  const [ex, ey] = arc(2 * Math.PI);
+  const [vx, vy] = arc(Math.PI + pct * Math.PI);
+
+  svg.innerHTML = `
+    <path d="M${sx} ${sy} A${r} ${r} 0 0 1 ${ex} ${ey}"
+          fill="none" stroke="#1f2937" stroke-width="9" stroke-linecap="round"/>
+    <path d="M${sx} ${sy} A${r} ${r} 0 0 1 ${vx} ${vy}"
+          fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round"
+          style="filter:drop-shadow(0 0 5px ${c})"/>
+    <circle cx="${vx}" cy="${vy}" r="4.5" fill="${c}"/>
+    <text x="12" y="${cy+2}" text-anchor="middle"
+          fill="#374151" font-size="7.5" font-family="JetBrains Mono">${t.min}</text>
+    <text x="${cx*2-12}" y="${cy+2}" text-anchor="middle"
+          fill="#374151" font-size="7.5" font-family="JetBrains Mono">${t.max}</text>
+  `;
+}
+
+// ── STATS FROM HISTORY ─────────────────────────────────────────
+function histStats(key, dec) {
+  const h = hist[key];
+  if (!h.length) return { min:'—', avg:'—', max:'—' };
+  return {
+    min: Math.min(...h).toFixed(dec),
+    avg: (h.reduce((a,b) => a+b, 0) / h.length).toFixed(dec),
+    max: Math.max(...h).toFixed(dec),
+  };
+}
+
+// ── RENDER ─────────────────────────────────────────────────────
+function render() {
+  const vars = [
+    { key:'pH',   id:'ph',   type:'pH',   dec:2 },
+    { key:'temp', id:'temp', type:'temp', dec:1 },
+    { key:'od',   id:'od',   type:'od',   dec:2 },
+    { key:'ec',   id:'ec',   type:'ec',   dec:0 },
+    { key:'turb', id:'turb', type:'turb', dec:1 },
+  ];
+
+  vars.forEach(({ key, id, type, dec }) => {
+    const v  = cur[key];
+    const c  = color(type, v);
+    const st = histStats(key, dec);
+
+    drawGauge(`gauge-${id}-svg`, v, type);
+
+    const gval = document.getElementById(`gval-${id}`);
+    if (gval) { gval.textContent = v !== null ? v.toFixed(dec) : '—'; gval.style.color = c; }
+
+    const gst = document.getElementById(`gstatus-${id}`);
+    if (gst) { gst.textContent = STATUS_LABEL[c] || '—'; gst.style.color = c; }
+
+    ['min','avg','max'].forEach(s => {
+      const el = document.getElementById(`stat-${id}-${s}`);
+      if (el) el.textContent = st[s];
+    });
+  });
+
+  updateCharts();
+  updateTable();
+}
+
+// ── CHARTS ─────────────────────────────────────────────────────
+const CHART_BASE = {
+  responsive: true, maintainAspectRatio: false,
+  animation: { duration: 400 },
+  plugins: {
+    legend: { display: false },
+  },
+  scales: {
+    x: {
+      ticks: { color:'#374151', font:{ family:'JetBrains Mono', size:9 } },
+      grid:  { color:'rgba(31,41,55,0.8)' }, border: { color:'#1f2937' },
+    },
+    y: {
+      ticks: { color:'#374151', font:{ family:'JetBrains Mono', size:9 } },
+      grid:  { color:'rgba(31,41,55,0.8)' }, border: { color:'#1f2937' },
+    },
+  },
+};
+
+let charts = {};
+
+function initCharts() {
+  const def = (id, color, yMin, yMax) => {
+    const ctx = document.getElementById(id).getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 160);
+    grad.addColorStop(0, color.replace(')', ',0.2)').replace('rgb','rgba'));
+    grad.addColorStop(1, color.replace(')', ',0)').replace('rgb','rgba'));
+    charts[id] = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          data: [],
+          borderColor: color,
+          backgroundColor: grad,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: color,
+          tension: 0.4,
+          fill: true,
+        }],
+      },
+      options: {
+        ...CHART_BASE,
+        scales: { ...CHART_BASE.scales, y: { ...CHART_BASE.scales.y, min: yMin, max: yMax } },
+      },
+    });
+  };
+
+  def('chartPH',   '#38bdf8', 0,    14);
+  def('chartTemp', '#fb923c', 10,   40);
+  def('chartOD',   '#22c55e', 0,    20);
+  def('chartEC',   '#a78bfa', 0,    1200);
+  def('chartTurb', '#eab308', 0,    180);
+}
+
+function updateCharts() {
+  const labels = hist.pH.map((_, i) => i + 1);
+
+  const pairs = [
+    { id:'chartPH',   key:'pH'   },
+    { id:'chartTemp', key:'temp' },
+    { id:'chartOD',   key:'od'   },
+    { id:'chartEC',   key:'ec'   },
+    { id:'chartTurb', key:'turb' },
+  ];
+
+  pairs.forEach(({ id, key }) => {
+    const c = charts[id];
+    if (!c) return;
+    c.data.labels            = labels.slice(0, hist[key].length);
+    c.data.datasets[0].data  = [...hist[key]];
+    c.update('none');
+  });
+}
+
+// ── TABLE ──────────────────────────────────────────────────────
+function badge(type, val) {
+  if (val === null) return '<span class="badge badge-yellow">—</span>';
+  const c   = color(type, val);
+  const cls = c === '#22c55e' ? 'badge-green' : c === '#eab308' ? 'badge-yellow' : 'badge-red';
+  return `<span class="badge ${cls}">${STATUS_LABEL[c]}</span>`;
+}
+
+function overallBadge() {
+  const cs = ['pH','temp','od','ec','turb'].map(k => color(k, cur[k]));
+  if (cs.includes('#ef4444')) return '<span class="badge badge-red">CRÍTICO</span>';
+  if (cs.includes('#eab308')) return '<span class="badge badge-yellow">ATENÇÃO</span>';
+  return '<span class="badge badge-green">NORMAL</span>';
+}
+
+function updateTable() {
+  document.getElementById('tableBody').innerHTML = `<tr>
+    <td style="color:var(--point);font-weight:600">P1</td>
+    <td style="color:var(--text-dim)">São José dos Campos</td>
+    <td>${cur.pH   !== null ? cur.pH.toFixed(2)   : '—'} ${badge('pH',   cur.pH)}</td>
+    <td>${cur.temp !== null ? cur.temp.toFixed(1)  : '—'} ${badge('temp', cur.temp)}</td>
+    <td>${cur.od   !== null ? cur.od.toFixed(2)    : '—'} ${badge('od',   cur.od)}</td>
+    <td>${cur.ec   !== null ? cur.ec.toFixed(0)    : '—'} ${badge('ec',   cur.ec)}</td>
+    <td>${cur.turb !== null ? cur.turb.toFixed(1)  : '—'} ${badge('turb', cur.turb)}</td>
+    <td>${overallBadge()}</td>
+  </tr>`;
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+initCharts();
+fetchData();
+setInterval(fetchData, 10000);
+
+// ── MAPA ──────────────────────────────────────────────────────
+const map = L.map('leafletMap', { zoomControl: true, attributionControl: false })
+             .setView([-23.187127, -45.918768], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+
+const icon = L.divIcon({
+  className: '',
+  html: `<div style="width:16px;height:16px;background:#38bdf8;border:2px solid #fff;
+               border-radius:50%;box-shadow:0 0 8px #38bdf8;"></div>`,
+  iconSize: [16, 16], iconAnchor: [8, 8],
+});
+
+L.marker([-23.187127, -45.918768], { icon })
+  .addTo(map)
+  .bindPopup('<b style="color:#38bdf8">P1 — São José dos Campos</b><br>Rio Paraíba do Sul')
+  .openPopup();
+
+// Círculo de área de monitoramento
+L.circle([-23.187127, -45.918768], {
+  color: '#38bdf8', weight: 1, opacity: 0.4,
+  fillColor: '#38bdf8', fillOpacity: 0.05, radius: 800,
+}).addTo(map);
+
+setTimeout(() => map.invalidateSize(), 500);
+</script>
+</body>
+</html>
