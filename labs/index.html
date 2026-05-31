@@ -595,6 +595,9 @@
   </div>
 
   <div class="insert-coin">— INSERT COIN TO CONTINUE —</div>
+  <div style="margin-top:1.2rem;font-size:.55rem;color:rgba(255,255,255,.5)">
+    <span id="snd-icon">🔇</span> TOQUE NA TELA PARA ATIVAR O SOM
+  </div>
 
   <p class="land-copy">© 2025 AGUAS DO VALE GAMES — ALL EXPERIMENTS RESERVED<br>SCIENCE IS THE ULTIMATE POWER-UP</p>
 </div>
@@ -1242,8 +1245,27 @@ const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRi
 ───────────────────────────────────────────── */
 function ctx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
+
+/* Desbloqueio de áudio mobile: iOS/Android exigem gesto do usuário */
+function unlockAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().then(() => {
+      /* Buffer silencioso — desbloqueia completamente no iOS Safari */
+      const buf = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+      const src = audioCtx.createBufferSource();
+      src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
+      document.getElementById('snd-icon').textContent = '🔊';
+    });
+  } else {
+    document.getElementById('snd-icon').textContent = '🔊';
+  }
+}
+document.addEventListener('touchstart', unlockAudio);
+document.addEventListener('click',      unlockAudio);
 function tone(freq, dur, type='square', vol=0.15, delay=0) {
   try {
     const c = ctx();
