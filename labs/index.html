@@ -1316,15 +1316,57 @@ function sfx(name) {
 
 /* ─────────────────────────────────────────────
    SPEECH SYNTHESIS — vozes dos personagens
-   Web Speech API: funciona em iOS/Android sem
-   arquivos externos.
+   Seleciona a voz masculina mais grave do
+   dispositivo para o anunciador do MK.
 ───────────────────────────────────────────── */
-function speak(text, pitch=1, rate=1, vol=1) {
+
+/* Carrega a voz masculina mais grave disponível */
+let _mkVoice = null;
+function loadMKVoice() {
+  const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  /* Vozes conhecidas por serem graves / masculinas */
+  const prefer = ['Alex','Daniel','David','Gordon','James','Thomas',
+                  'Google US English','Fred','Bruce','Junior'];
+  for (const name of prefer) {
+    const v = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
+    if (v) { _mkVoice = v; return; }
+  }
+  /* Fallback: qualquer voz inglesa que não seja explicitamente feminina */
+  _mkVoice = voices.find(v =>
+    v.lang.startsWith('en') &&
+    !v.name.toLowerCase().match(/female|zira|samantha|victoria|kate|karen|moira|tessa|fiona|susan|lisa|amy/)
+  ) || null;
+}
+if (window.speechSynthesis) {
+  loadMKVoice();
+  window.speechSynthesis.addEventListener('voiceschanged', loadMKVoice);
+}
+
+function speak(text, pitch=1, rate=1, vol=1, voice=null) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.pitch = pitch; u.rate = rate; u.volume = vol; u.lang = 'en-US';
+  if (voice) u.voice = voice;
   window.speechSynthesis.speak(u);
+}
+
+/* Sub-bass boom — dá peso ao anunciador do MK */
+function mkBoom() {
+  try {
+    const c = ctx(), t = c.currentTime + 0.03;
+    /* Três harmônicos graves para simular voz de peito */
+    [52, 78, 104].forEach((freq, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(freq, t);
+      o.frequency.exponentialRampToValueAtTime(freq * 0.7, t + 0.6);
+      g.gain.setValueAtTime(0.5 - i * 0.12, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.85);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + 0.9);
+    });
+  } catch(e) {}
 }
 
 /* Mario — agudo, animado, italiano */
@@ -1336,19 +1378,19 @@ const MARIO = {
   herewego:() => speak("Here we go!",     1.9, 1.2, 1),
 };
 
-/* Mortal Kombat — grave, lento, intimidador */
+/* Mortal Kombat — pitch mínimo + voz grave + bass boom */
 const MK = {
-  fight:    () => speak('Fight!',             0.35, 0.72, 1),
-  finishHim:() => speak('Finish him!',        0.30, 0.62, 1),
-  flawless: () => speak('Flawless victory!',  0.35, 0.68, 1),
-  fatality: () => speak('Fatality!',          0.32, 0.72, 1),
+  fight:    () => { mkBoom(); speak('Fight!',            0.1, 0.60, 1, _mkVoice); },
+  finishHim:() => { mkBoom(); speak('Finish him!',       0.1, 0.52, 1, _mkVoice); },
+  flawless: () => { mkBoom(); speak('Flawless victory!', 0.1, 0.58, 1, _mkVoice); },
+  fatality: () => { mkBoom(); speak('Fatality!',         0.1, 0.60, 1, _mkVoice); },
 };
 
 /* Street Fighter — médio, marcial, enérgico */
 const SF = {
-  hadouken:  () => speak('Hadouken!',  0.75, 1.15, 1),
-  shoryuken: () => speak('Shoryuken!', 0.75, 1.05, 1),
-  fight:     () => speak('Fight!',     0.65, 0.90, 1),
+  hadouken:  () => speak('Hadouken!',  0.7, 1.15, 1),
+  shoryuken: () => speak('Shoryuken!', 0.7, 1.05, 1),
+  fight:     () => speak('Fight!',     0.6, 0.88, 1),
 };
 
 /* ─────────────────────────────────────────────
