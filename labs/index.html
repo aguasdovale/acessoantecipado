@@ -1315,23 +1315,50 @@ function sfx(name) {
 }
 
 /* ─────────────────────────────────────────────
-   SPEECH SYNTHESIS — vozes dos personagens
-   Seleciona a voz masculina mais grave do
-   dispositivo para o anunciador do MK.
+   AUDIO PLAYER — arquivos reais + TTS fallback
+   Coloque MP3s em labs/audio/ para usar as
+   vozes/sons oficiais dos jogos.
+   Se o arquivo não existir, usa TTS.
 ───────────────────────────────────────────── */
 
-/* Carrega a voz masculina mais grave disponível */
+/* Cache de buffers decodificados (null = não existe, 'pending' = carregando) */
+const _buf = {};
+
+function _playBuf(key) {
+  const b = _buf[key];
+  if (!(b instanceof AudioBuffer)) return false;
+  try {
+    const c = ctx(), s = c.createBufferSource();
+    s.buffer = b; s.connect(c.destination); s.start();
+  } catch(e) {}
+  return true;
+}
+
+function _load(key) {
+  if (_buf[key] !== undefined) return;   // já tentou
+  _buf[key] = 'pending';
+  fetch('audio/' + key + '.mp3')
+    .then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+    .then(ab => ctx().decodeAudioData(ab))
+    .then(decoded => { _buf[key] = decoded; })
+    .catch(() => { _buf[key] = null; });
+}
+
+/* Pré-carrega todos os arquivos em background assim que a página abre */
+['mario-yahoo','mario-wahoo','mario-letsago','mario-mamamia','mario-herewego',
+ 'mk-fight','mk-finish-him','mk-flawless','mk-fatality',
+ 'sf-hadouken','sf-shoryuken','sf-fight'].forEach(_load);
+
+/* ── TTS fallback ── */
 let _mkVoice = null;
 function loadMKVoice() {
   const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
-  /* Vozes conhecidas por serem graves / masculinas */
   const prefer = ['Alex','Daniel','David','Gordon','James','Thomas',
                   'Google US English','Fred','Bruce','Junior'];
   for (const name of prefer) {
     const v = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
     if (v) { _mkVoice = v; return; }
   }
-  /* Fallback: qualquer voz inglesa que não seja explicitamente feminina */
   _mkVoice = voices.find(v =>
     v.lang.startsWith('en') &&
     !v.name.toLowerCase().match(/female|zira|samantha|victoria|kate|karen|moira|tessa|fiona|susan|lisa|amy/)
@@ -1351,11 +1378,10 @@ function speak(text, pitch=1, rate=1, vol=1, voice=null) {
   window.speechSynthesis.speak(u);
 }
 
-/* Sub-bass boom — dá peso ao anunciador do MK */
+/* Sub-bass para reforçar o anunciador do MK via TTS */
 function mkBoom() {
   try {
     const c = ctx(), t = c.currentTime + 0.03;
-    /* Três harmônicos graves para simular voz de peito */
     [52, 78, 104].forEach((freq, i) => {
       const o = c.createOscillator(), g = c.createGain();
       o.type = 'sine';
@@ -1369,28 +1395,28 @@ function mkBoom() {
   } catch(e) {}
 }
 
-/* Mario — agudo, animado, italiano */
+/* ── Personagens ──
+   Prioridade: arquivo MP3 em audio/  →  TTS como fallback
+────────────────────────────────────────────────────────── */
 const MARIO = {
-  yahoo:   () => speak('Yahoo!',          2.0, 1.5, 1),
-  wahoo:   () => speak('Wahoo!',          2.0, 1.4, 1),
-  letsago: () => speak("Let's-a go!",     1.9, 1.2, 1),
-  mamamia: () => speak('Mama mia!',       1.8, 1.0, 1),
-  herewego:() => speak("Here we go!",     1.9, 1.2, 1),
+  yahoo:   () => _playBuf('mario-yahoo')   || speak('Yahoo!',      2.0, 1.5, 1),
+  wahoo:   () => _playBuf('mario-wahoo')   || speak('Wahoo!',      2.0, 1.4, 1),
+  letsago: () => _playBuf('mario-letsago') || speak("Let's-a go!", 1.9, 1.2, 1),
+  mamamia: () => _playBuf('mario-mamamia') || speak('Mama mia!',   1.8, 1.0, 1),
+  herewego:() => _playBuf('mario-herewego')|| speak("Here we go!", 1.9, 1.2, 1),
 };
 
-/* Mortal Kombat — pitch mínimo + voz grave + bass boom */
 const MK = {
-  fight:    () => { mkBoom(); speak('Fight!',            0.1, 0.60, 1, _mkVoice); },
-  finishHim:() => { mkBoom(); speak('Finish him!',       0.1, 0.52, 1, _mkVoice); },
-  flawless: () => { mkBoom(); speak('Flawless victory!', 0.1, 0.58, 1, _mkVoice); },
-  fatality: () => { mkBoom(); speak('Fatality!',         0.1, 0.60, 1, _mkVoice); },
+  fight:    () => _playBuf('mk-fight')      || (mkBoom(), speak('Fight!',            0.1, 0.60, 1, _mkVoice)),
+  finishHim:() => _playBuf('mk-finish-him') || (mkBoom(), speak('Finish him!',       0.1, 0.52, 1, _mkVoice)),
+  flawless: () => _playBuf('mk-flawless')   || (mkBoom(), speak('Flawless victory!', 0.1, 0.58, 1, _mkVoice)),
+  fatality: () => _playBuf('mk-fatality')   || (mkBoom(), speak('Fatality!',         0.1, 0.60, 1, _mkVoice)),
 };
 
-/* Street Fighter — médio, marcial, enérgico */
 const SF = {
-  hadouken:  () => speak('Hadouken!',  0.7, 1.15, 1),
-  shoryuken: () => speak('Shoryuken!', 0.7, 1.05, 1),
-  fight:     () => speak('Fight!',     0.6, 0.88, 1),
+  hadouken:  () => _playBuf('sf-hadouken')  || speak('Hadouken!',  0.7, 1.15, 1),
+  shoryuken: () => _playBuf('sf-shoryuken') || speak('Shoryuken!', 0.7, 1.05, 1),
+  fight:     () => _playBuf('sf-fight')     || speak('Fight!',     0.6, 0.88,  1),
 };
 
 /* ─────────────────────────────────────────────
