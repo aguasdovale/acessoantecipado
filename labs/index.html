@@ -1244,30 +1244,37 @@ function ctx() {
   return audioCtx;
 }
 
-/* Passo 1: desbloqueia o AudioContext (exige gesto do usuário no mobile) */
-async function ensureAudio() {
+/* Passo 1: desbloqueia o AudioContext.
+   IMPORTANTE: deve ser 100% síncrono — iOS Safari perde o contexto de
+   gesto do usuário se a função for async/await. */
+function ensureAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') await audioCtx.resume();
-  /* Buffer silencioso — obrigatório no iOS Safari para desbloqueio completo */
-  const buf = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
-  const src = audioCtx.createBufferSource();
-  src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
+  /* resume() sem await — chamado dentro do handler de toque, isso basta para iOS */
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  /* Buffer silencioso de 1 sample — desbloqueia completamente o iOS Safari */
+  try {
+    const buf = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
+  } catch(e) {}
   audioReady = true;
   document.getElementById('snd-icon').textContent = '🔊';
   document.getElementById('insert-coin-text').textContent = '— INSERT COIN TO CONTINUE —';
   document.getElementById('snd-hint').textContent = 'som ativado! toque para entrar';
 }
-function tone(freq, dur, type='square', vol=0.15, delay=0) {
+function tone(freq, dur, type='square', vol=0.35, delay=0) {
   try {
     const c = ctx();
+    /* +0.05s de margem: garante que o contexto já esteja running no mobile */
+    const t = c.currentTime + delay + 0.05;
     const o = c.createOscillator(), g = c.createGain();
     o.connect(g); g.connect(c.destination);
     o.type = type;
-    o.frequency.setValueAtTime(freq, c.currentTime + delay);
-    g.gain.setValueAtTime(vol, c.currentTime + delay);
-    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + delay + dur);
-    o.start(c.currentTime + delay);
-    o.stop(c.currentTime + delay + dur + 0.01);
+    o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.start(t);
+    o.stop(t + dur + 0.01);
   } catch(e) {}
 }
 function sfx(name) {
