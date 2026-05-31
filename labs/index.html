@@ -594,9 +594,9 @@
     <span>📡 ISA</span>
   </div>
 
-  <div class="insert-coin">— INSERT COIN TO CONTINUE —</div>
+  <div class="insert-coin" id="insert-coin-text">— TOQUE PARA ATIVAR O SOM —</div>
   <div style="margin-top:1.2rem;font-size:.55rem;color:rgba(255,255,255,.5)">
-    <span id="snd-icon">🔇</span> TOQUE NA TELA PARA ATIVAR O SOM
+    <span id="snd-icon">🔇</span> <span id="snd-hint">depois toque novamente para entrar</span>
   </div>
 
   <p class="land-copy">© 2025 AGUAS DO VALE GAMES — ALL EXPERIMENTS RESERVED<br>SCIENCE IS THE ULTIMATE POWER-UP</p>
@@ -1237,6 +1237,7 @@ let score = 0, coins = 0;
 let activeCourse = null;
 const done = { etl:[], isa:[] };
 let audioCtx = null;
+let audioReady = false;
 let konamiSeq = [];
 const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
 
@@ -1249,23 +1250,19 @@ function ctx() {
   return audioCtx;
 }
 
-/* Desbloqueio de áudio mobile: iOS/Android exigem gesto do usuário */
-function unlockAudio() {
+/* Passo 1: desbloqueia o AudioContext (exige gesto do usuário no mobile) */
+async function ensureAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume().then(() => {
-      /* Buffer silencioso — desbloqueia completamente no iOS Safari */
-      const buf = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
-      const src = audioCtx.createBufferSource();
-      src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
-      document.getElementById('snd-icon').textContent = '🔊';
-    });
-  } else {
-    document.getElementById('snd-icon').textContent = '🔊';
-  }
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
+  /* Buffer silencioso — obrigatório no iOS Safari para desbloqueio completo */
+  const buf = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
+  audioReady = true;
+  document.getElementById('snd-icon').textContent = '🔊';
+  document.getElementById('insert-coin-text').textContent = '— INSERT COIN TO CONTINUE —';
+  document.getElementById('snd-hint').textContent = 'som ativado! toque para entrar';
 }
-document.addEventListener('touchstart', unlockAudio);
-document.addEventListener('click',      unlockAudio);
 function tone(freq, dur, type='square', vol=0.15, delay=0) {
   try {
     const c = ctx();
@@ -1339,6 +1336,12 @@ function sfx(name) {
    ENTER SITE
 ───────────────────────────────────────────── */
 function enterSite() {
+  if (!audioReady) {
+    /* 1º toque: ativa o som e aguarda segundo toque */
+    ensureAudio();
+    return;
+  }
+  /* 2º toque: entra no site com som */
   sfx('coin'); setTimeout(()=>sfx('coin'),160);
   document.getElementById('landing').classList.add('fade-out');
   setTimeout(()=>{
