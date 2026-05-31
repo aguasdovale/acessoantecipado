@@ -1257,6 +1257,11 @@ function ensureAudio() {
     const src = audioCtx.createBufferSource();
     src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
   } catch(e) {}
+  /* Primar SpeechSynthesis no mesmo gesto — obrigatório no iOS */
+  if (window.speechSynthesis) {
+    const u = new SpeechSynthesisUtterance(''); u.volume = 0;
+    window.speechSynthesis.speak(u);
+  }
   audioReady = true;
   document.getElementById('snd-icon').textContent = '🔊';
   document.getElementById('insert-coin-text').textContent = '— INSERT COIN TO CONTINUE —';
@@ -1310,6 +1315,43 @@ function sfx(name) {
 }
 
 /* ─────────────────────────────────────────────
+   SPEECH SYNTHESIS — vozes dos personagens
+   Web Speech API: funciona em iOS/Android sem
+   arquivos externos.
+───────────────────────────────────────────── */
+function speak(text, pitch=1, rate=1, vol=1) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.pitch = pitch; u.rate = rate; u.volume = vol; u.lang = 'en-US';
+  window.speechSynthesis.speak(u);
+}
+
+/* Mario — agudo, animado, italiano */
+const MARIO = {
+  yahoo:   () => speak('Yahoo!',          2.0, 1.5, 1),
+  wahoo:   () => speak('Wahoo!',          2.0, 1.4, 1),
+  letsago: () => speak("Let's-a go!",     1.9, 1.2, 1),
+  mamamia: () => speak('Mama mia!',       1.8, 1.0, 1),
+  herewego:() => speak("Here we go!",     1.9, 1.2, 1),
+};
+
+/* Mortal Kombat — grave, lento, intimidador */
+const MK = {
+  fight:    () => speak('Fight!',             0.35, 0.72, 1),
+  finishHim:() => speak('Finish him!',        0.30, 0.62, 1),
+  flawless: () => speak('Flawless victory!',  0.35, 0.68, 1),
+  fatality: () => speak('Fatality!',          0.32, 0.72, 1),
+};
+
+/* Street Fighter — médio, marcial, enérgico */
+const SF = {
+  hadouken:  () => speak('Hadouken!',  0.75, 1.15, 1),
+  shoryuken: () => speak('Shoryuken!', 0.75, 1.05, 1),
+  fight:     () => speak('Fight!',     0.65, 0.90, 1),
+};
+
+/* ─────────────────────────────────────────────
    LANDING SETUP
 ───────────────────────────────────────────── */
 (function buildLanding() {
@@ -1344,6 +1386,7 @@ function enterSite() {
   }
   /* 2º toque: entra no site com som */
   sfx('coin'); setTimeout(()=>sfx('coin'),160);
+  setTimeout(()=>MARIO.yahoo(), 250);   /* Mario: "Yahoo!" */
   document.getElementById('landing').classList.add('fade-out');
   setTimeout(()=>{
     document.getElementById('landing').style.display='none';
@@ -1365,6 +1408,7 @@ function selectCourse(c) {
   if(c==='etl') renderGrid('etl'); else renderGrid('isa');
   setTimeout(()=>{
     flashFight(c==='etl'?'ELETROTÉCNICA':'INSTRUMENTAÇÃO');
+    MK.fight();  /* Mortal Kombat: "Fight!" */
     document.getElementById(c+'-sec').scrollIntoView({behavior:'smooth'});
   }, 350);
   addScore(50); addCoin();
@@ -1422,6 +1466,11 @@ function openModal(c, id) {
   const exp = DATA[c].find(e=>e.id===id);
   if(!exp) return;
   setTimeout(()=>sfx('fight'), 320);
+  /* Street Fighter: Hadouken! ou Shoryuken! aleatório */
+  setTimeout(()=>{
+    const moves = [SF.hadouken, SF.shoryuken, SF.fight];
+    moves[Math.floor(Math.random()*moves.length)]();
+  }, 620);
 
   const isDone = done[c].includes(id);
   const stars  = '⭐'.repeat(exp.diff)+'☆'.repeat(5-exp.diff);
@@ -1486,6 +1535,7 @@ function completeExp(c, id) {
   // FINISH HIM overlay
   const fh = document.getElementById('finish-him');
   fh.classList.add('show');
+  MK.finishHim();  /* Mortal Kombat: "Finish him!" */
   setTimeout(()=>fh.classList.remove('show'), 2200);
 
   // MK blood drops
@@ -1504,6 +1554,7 @@ function completeExp(c, id) {
   if(done[c].length === total) {
     setTimeout(()=>{
       sfx('powerup');
+      MARIO.wahoo();  /* Mario: "Wahoo!" ao completar o curso */
       showAchieve('CURSO MASTERIZADO!', `🏆 PARABÉNS! ${c.toUpperCase()} COMPLETO!`);
       burst(window.innerWidth/2, window.innerHeight/2, 35);
     }, 2400);
@@ -1579,6 +1630,7 @@ document.addEventListener('keydown', e=>{
 
 function ultraMode() {
   sfx('konami');
+  setTimeout(()=>MK.flawless(), 400);  /* MK: "Flawless Victory!" */
   const kd = document.getElementById('konami-disp');
   kd.classList.add('show');
   setTimeout(()=>kd.classList.remove('show'), 3200);
