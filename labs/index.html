@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LAB QUEST — Disciplinas Experimentais</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    /* ===== ROOT ===== */
+    :root {
+      --green:  #00ff41;
+      --pink:   #ff0080;
+      --yellow: #ffd700;
+      --cyan:   #00ffff;
+      --orange: #ff6600;
+      --purple: #cc00ff;
+      --red:    #ff2222;
+      --blue:   #0088ff;
+      --dark:   #050508;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+
+    body {
+      background: var(--dark);
+      color: #fff;
+      font-family: 'Press Start 2P', cursive;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(ellipse at top,    rgba(0,60,20,.25)  0%, transparent 60%),
+        radial-gradient(ellipse at bottom, rgba(30,0,60,.25)  0%, transparent 60%);
+    }
+
+    /* CRT scanlines */
+    body::before {
+      content:'';
+      position:fixed; inset:0; pointer-events:none; z-index:10000;
+      background: repeating-linear-gradient(0deg,
+        transparent, transparent 3px,
+        rgba(0,0,0,.09) 3px, rgba(0,0,0,.09) 4px);
+    }
+    /* CRT vignette */
+    body::after {
+      content:'';
+      position:fixed; inset:0; pointer-events:none; z-index:9999;
+      background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.75) 100%);
+    }
+
+    /* Animated bg grid */
+    .bg-grid {
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background-image:
+        linear-gradient(rgba(0,255,65,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,65,.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      animation: gridScroll 25s linear infinite;
+    }
+    @keyframes gridScroll {
+      from { background-position: 0 0; }
+      to   { background-position: 48px 48px; }
+    }
+
+    /* ===========================
+       LANDING SCREEN
+    =========================== */
+    #landing {
+      position:fixed; inset:0; z-index:5000;
+      background:#000;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      cursor:pointer; overflow:hidden;
+    }
+    #landing.fade-out { animation: fadeOut .6s forwards; }
+    @keyframes fadeOut { to { opacity:0; pointer-events:none; } }
+
+    .landing-star {
+      position:absolute; width:2px; height:2px; background:#fff;
+      animation: twinkle var(--d,2s) infinite var(--dl,0s);
+    }
+    @keyframes twinkle { 0%,100%{opacity:1} 50%{opacity:.15} }
+
+    .pixel-rain {
+      position:absolute; top:-20px;
+      animation: pixFall var(--d,4s) linear var(--dl,0s) infinite;
+    }
+    @keyframes pixFall {
+      from { transform:translateY(0); opacity:1; }
+      to   { transform:translateY(110vh); opacity:0; }
+    }
+
+    .title-wrap { z-index:1; text-align:center; }
+
+    .title-lab {
+      display:block;
+      font-size:clamp(2.5rem,8vw,5.5rem);
+      color:var(--cyan);
+      letter-spacing:8px;
+      text-shadow: 0 0 12px var(--cyan), 0 0 40px var(--cyan), 4px 4px 0 rgba(0,80,200,.5);
+      animation: glowPulse 1.6s ease-in-out infinite;
+    }
+    .title-quest {
+      display:block;
+      font-size:clamp(2.5rem,8vw,5.5rem);
+      color:var(--yellow);
+      letter-spacing:4px;
+      text-shadow: 0 0 12px var(--yellow), 0 0 40px var(--orange), 4px 4px 0 rgba(180,80,0,.5);
+      animation: glowPulse 1.6s ease-in-out infinite .8s;
+    }
+    @keyframes glowPulse {
+      0%,100% { filter:brightness(1); }
+      50%     { filter:brightness(1.4) drop-shadow(0 0 20px currentColor); }
+    }
+
+    .title-sub {
+      z-index:1; font-size:clamp(.5rem,1.4vw,.85rem);
+      color:var(--green); letter-spacing:3px; margin-top:1.4rem;
+    }
+
+    .game-row {
+      z-index:1; display:flex; gap:2rem; margin-top:2rem;
+      font-size:2rem;
+    }
+    .game-row span { animation: floatY 3s ease-in-out infinite; }
+    .game-row span:nth-child(2) { animation-delay:.4s; }
+    .game-row span:nth-child(3) { animation-delay:.8s; }
+    .game-row span:nth-child(4) { animation-delay:1.2s; }
+    @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+    .insert-coin {
+      z-index:1; font-size:clamp(.6rem,1.6vw,1rem);
+      color:var(--yellow); margin-top:2.5rem;
+      animation: blink .85s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    .land-copy {
+      position:absolute; bottom:1.8rem;
+      font-size:.45rem; color:rgba(255,255,255,.35); text-align:center;
+    }
+
+    /* game sprites (css art) */
+    .sprites-row {
+      z-index:1; display:flex; gap:3rem; margin-top:1.5rem; opacity:.55;
+      font-size:1.4rem; letter-spacing:2px; color:var(--green);
+    }
+
+    /* ===========================
+       MAIN SITE
+    =========================== */
+    #main-site { display:none; min-height:100vh; }
+    #main-site.on { display:block; }
+
+    .content { position:relative; z-index:1; }
+
+    /* ===== HUD HEADER ===== */
+    .hud {
+      position:sticky; top:0; z-index:100;
+      background:rgba(0,0,0,.92);
+      border-bottom:3px solid var(--green);
+      padding:.7rem 1.5rem;
+      display:flex; justify-content:space-between; align-items:center;
+      box-shadow: 0 0 24px rgba(0,255,65,.25);
+    }
+    .hud-score { font-size:.55rem; color:var(--yellow); line-height:1.8; }
+    .hud-brand { font-size:.65rem; color:var(--cyan); text-shadow:0 0 12px var(--cyan); }
+    .hud-lives { font-size:.8rem; color:var(--red); }
+    .hud-coins { font-size:.55rem; color:var(--yellow); }
+
+    /* ===== MARQUEE ===== */
+    .marquee-wrap {
+      overflow:hidden; width:100%;
+      background:rgba(0,255,65,.08);
+      border-top:2px solid var(--green);
+      border-bottom:2px solid var(--green);
+      padding:.45rem 0;
+    }
+    .marquee-inner {
+      display:inline-block; white-space:nowrap;
+      font-size:.45rem; color:var(--green);
+      animation: marq 30s linear infinite;
+    }
+    @keyframes marq {
+      from { transform:translateX(100vw); }
+      to   { transform:translateX(-100%); }
+    }
+
+    /* ===== PIXEL DIVIDER ===== */
+    .px-div {
+      width:100%; height:4px;
+      background: repeating-linear-gradient(90deg,
+        var(--green) 0, var(--green) 8px, transparent 8px, transparent 16px);
+      opacity:.4; margin:2rem 0;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      text-align:center; padding:3.5rem 2rem 1.5rem;
+    }
+    .hero h1 {
+      font-size:clamp(.9rem,2.8vw,2rem);
+      color:var(--green);
+      text-shadow:0 0 20px var(--green), 3px 3px 0 rgba(0,100,30,.5);
+      margin-bottom:1rem;
+    }
+    .hero p {
+      font-size:.55rem; color:rgba(255,255,255,.55);
+      line-height:2.2; max-width:560px; margin:0 auto;
+    }
+    .hero-icons { font-size:1.5rem; margin-top:1.2rem; letter-spacing:.5rem; }
+
+    /* ===== SECTION WRAPPER ===== */
+    .sec { padding:2rem 1.5rem; max-width:1200px; margin:0 auto; }
+
+    .sec-title {
+      text-align:center;
+      font-size:clamp(.65rem,1.8vw,1.1rem);
+      color:var(--pink);
+      text-shadow:0 0 14px var(--pink);
+      margin-bottom:2rem; letter-spacing:3px;
+    }
+    .sec-title::before { content:'◄◄ '; color:var(--yellow); }
+    .sec-title::after  { content:' ►►'; color:var(--yellow); }
+
+    /* ===== COURSE SELECT ===== */
+    .course-flex {
+      display:flex; align-items:center;
+      justify-content:center; gap:1.5rem;
+      flex-wrap:wrap;
+    }
+
+    .course-card {
+      flex:1; min-width:270px; max-width:420px;
+      background:linear-gradient(135deg,rgba(0,0,0,.85),rgba(0,20,12,.85));
+      border:3px solid var(--green); border-radius:3px;
+      padding:1.8rem; cursor:pointer; position:relative; overflow:hidden;
+      transition:transform .15s, border-color .2s, box-shadow .2s;
+      box-shadow:0 0 16px rgba(0,255,65,.18), inset 0 0 30px rgba(0,255,65,.03);
+    }
+    .course-card:hover {
+      border-color:var(--cyan); transform:translateY(-5px) scale(1.02);
+      box-shadow:0 0 35px rgba(0,255,255,.4), inset 0 0 30px rgba(0,255,255,.06);
+    }
+    .course-card.selected {
+      border-color:var(--yellow);
+      box-shadow:0 0 45px rgba(255,215,0,.55), inset 0 0 30px rgba(255,215,0,.06);
+    }
+    .course-card::before {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,.025) 50%,transparent 70%);
+      animation:shimmer 4s infinite;
+    }
+    @keyframes shimmer { 0%{transform:translateX(-120%)} 100%{transform:translateX(220%)} }
+
+    .c-num   { font-size:.45rem; color:var(--green); opacity:.65; margin-bottom:.4rem; }
+    .c-ava   { font-size:3.8rem; text-align:center; margin:.8rem 0;
+               filter:drop-shadow(0 0 10px rgba(0,255,65,.5));
+               animation:floatY 3s ease-in-out infinite; }
+    .c-name  { font-size:clamp(.7rem,1.6vw,1rem); color:var(--yellow); text-align:center;
+               margin-bottom:.3rem; text-shadow:2px 2px 0 rgba(180,90,0,.5); }
+    .c-sub   { font-size:.45rem; color:var(--cyan); text-align:center; margin-bottom:1.4rem; }
+
+    .stats { display:flex; flex-direction:column; gap:.45rem; }
+    .stat-row { display:flex; align-items:center; gap:.5rem; }
+    .stat-lbl { font-size:.38rem; color:rgba(255,255,255,.55); width:64px; flex-shrink:0; }
+    .stat-bar { flex:1; height:8px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); overflow:hidden; }
+    .stat-fill { height:100%; background:var(--green); box-shadow:0 0 8px var(--green); transition:width .8s; }
+    .sf-b { background:var(--cyan);   box-shadow:0 0 8px var(--cyan); }
+    .sf-o { background:var(--orange); box-shadow:0 0 8px var(--orange); }
+    .sf-p { background:var(--purple); box-shadow:0 0 8px var(--purple); }
+
+    .sel-btn {
+      display:block; width:100%; margin-top:1.4rem; padding:.75rem;
+      background:transparent; border:2px solid var(--green);
+      color:var(--green); font-family:'Press Start 2P',cursive;
+      font-size:.55rem; cursor:pointer; letter-spacing:2px;
+      transition:all .2s;
+    }
+    .sel-btn:hover { background:var(--green); color:#000; box-shadow:0 0 20px var(--green); }
+
+    .vs-txt {
+      font-size:clamp(1.2rem,4vw,2.5rem); color:var(--red);
+      text-shadow:0 0 20px var(--red), 3px 3px 0 #660000;
+      flex-shrink:0;
+    }
+
+    /* ===== EXPERIMENTS SECTION ===== */
+    .exp-sec { display:none; padding:2rem 1.5rem; max-width:1200px; margin:0 auto; }
+    .exp-sec.on { display:block; animation:slideUp .45s ease; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
+
+    .back-btn {
+      background:transparent; border:2px solid var(--green);
+      color:var(--green); font-family:'Press Start 2P',cursive;
+      font-size:.55rem; cursor:pointer; padding:.55rem 1.1rem;
+      transition:all .2s; margin-bottom:1.8rem;
+    }
+    .back-btn:hover { background:var(--green); color:#000; }
+
+    .disc-hdr {
+      text-align:center; padding:1.8rem; margin-bottom:1.5rem;
+      border:2px solid var(--green); background:rgba(0,255,65,.03);
+    }
+    .disc-hdr h2 {
+      font-size:clamp(.8rem,2.2vw,1.5rem); color:var(--green);
+      text-shadow:0 0 20px var(--green); margin-bottom:.5rem;
+    }
+    .disc-hdr p { font-size:.5rem; color:rgba(255,255,255,.5); line-height:2.2; }
+
+    /* health bar */
+    .hp-label {
+      font-size:.45rem; color:var(--red); margin-bottom:.3rem;
+      display:flex; justify-content:space-between;
+    }
+    .hp-bar {
+      width:100%; height:18px;
+      background:#160000; border:2px solid var(--red); overflow:hidden;
+      margin-top:1.2rem;
+    }
+    .hp-fill {
+      height:100%;
+      background:linear-gradient(90deg,#ff0000,#ff6600,#ffff00);
+      box-shadow:0 0 10px #ff6600; transition:width 1s ease;
+    }
+
+    /* tags */
+    .tag {
+      display:inline-block; padding:.18rem .45rem;
+      font-size:.38rem; border:1px solid; margin:.18rem;
+    }
+    .tg  { color:var(--green);  border-color:var(--green); }
+    .tc  { color:var(--cyan);   border-color:var(--cyan); }
+    .tp  { color:var(--pink);   border-color:var(--pink); }
+    .ty  { color:var(--yellow); border-color:var(--yellow); }
+
+    /* ===== STAGE GRID ===== */
+    .stage-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+      gap:1.4rem; margin:2rem 0;
+    }
+    .stage-card {
+      background:rgba(0,0,0,.75); border:2px solid var(--green);
+      padding:1.1rem; cursor:pointer; position:relative;
+      transition:all .2s; overflow:hidden;
+    }
+    .stage-card:hover {
+      border-color:var(--yellow); transform:scale(1.05);
+      box-shadow:0 0 28px rgba(255,215,0,.4);
+    }
+    .stage-card.done { border-color:var(--cyan); box-shadow:0 0 16px rgba(0,255,255,.3); }
+    .stage-card::after {
+      content:''; position:absolute; inset:0; pointer-events:none;
+      background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,.025) 50%,transparent 60%);
+      animation:shimmer 5s infinite;
+    }
+    .s-num    { font-size:1.9rem; color:var(--green); text-shadow:0 0 10px var(--green); margin-bottom:.4rem; }
+    .s-title  { font-size:.52rem; color:#fff; line-height:1.8; margin-bottom:.3rem; }
+    .s-sub    { font-size:.38rem; color:rgba(255,255,255,.45); line-height:1.6; }
+    .s-status { position:absolute; top:.5rem; right:.6rem; font-size:.85rem; }
+    .s-stars  { display:flex; gap:3px; margin-top:.4rem; font-size:.55rem; }
+
+    /* ===== MODAL ===== */
+    .modal-bg {
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.96); backdrop-filter:blur(5px);
+      z-index:500; display:none; overflow-y:auto;
+    }
+    .modal-bg.open { display:flex; animation:fadeIn .3s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+    .modal-box {
+      background:#050508; border:3px solid var(--green);
+      max-width:800px; width:93%; margin:auto;
+      padding:2rem; position:relative;
+      box-shadow:0 0 70px rgba(0,255,65,.3);
+    }
+    .modal-close {
+      position:absolute; top:1rem; right:1rem;
+      background:transparent; border:2px solid var(--red);
+      color:var(--red); font-family:'Press Start 2P',cursive;
+      font-size:.55rem; cursor:pointer; padding:.35rem .75rem;
+      transition:all .2s;
+    }
+    .modal-close:hover { background:var(--red); color:#000; }
+
+    .m-fight {
+      text-align:center;
+      font-size:clamp(1.6rem,5vw,3.2rem);
+      color:var(--yellow);
+      text-shadow:0 0 20px var(--orange), 4px 4px 0 var(--red), 8px 8px 0 rgba(180,0,0,.4);
+      margin-bottom:1.3rem;
+      animation:fightIn .5s ease;
+    }
+    @keyframes fightIn {
+      0%  { transform:scale(3); opacity:0; }
+      60% { transform:scale(1.08); }
+      100%{ transform:scale(1); opacity:1; }
+    }
+    .m-round { text-align:center; font-size:.6rem; color:var(--cyan); margin-bottom:.4rem; }
+    .m-title {
+      font-size:clamp(.75rem,2.2vw,1.3rem); color:var(--green);
+      text-align:center; margin-bottom:1.8rem;
+      text-shadow:0 0 15px var(--green);
+      padding-bottom:1rem; border-bottom:2px solid var(--green);
+    }
+    .m-stitle {
+      font-size:.65rem; color:var(--yellow); margin:1.4rem 0 .7rem;
+      text-shadow:0 0 10px var(--yellow);
+    }
+    .m-stitle::before { content:'▶ '; }
+
+    .m-list { list-style:none; }
+    .m-list li {
+      font-size:.5rem; color:rgba(255,255,255,.8);
+      padding:.38rem 0 .38rem 1.4rem; border-bottom:1px solid rgba(255,255,255,.05);
+      line-height:1.9; position:relative;
+    }
+    .m-list li::before { content:'■ '; color:var(--green); position:absolute; left:0; }
+
+    .step-list { list-style:none; counter-reset:steps; }
+    .step-list li {
+      counter-increment:steps; font-size:.5rem;
+      color:rgba(255,255,255,.8); padding:.48rem 0 .48rem 2.4rem;
+      border-left:2px solid var(--green); margin-bottom:.4rem;
+      line-height:1.9; position:relative;
+    }
+    .step-list li::before {
+      content:counter(steps,decimal-leading-zero);
+      position:absolute; left:-.1rem; top:50%; transform:translateY(-50%);
+      color:var(--green); font-size:.45rem;
+      background:#050508; padding:0 4px;
+    }
+
+    .media-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+    .media-ph {
+      border:2px dashed rgba(255,255,255,.18); padding:2.5rem 1rem;
+      text-align:center; font-size:.45rem; color:rgba(255,255,255,.3);
+      cursor:pointer; transition:border-color .2s, color .2s;
+    }
+    .media-ph:hover { border-color:var(--green); color:var(--green); }
+    .media-ph .ico { font-size:1.8rem; display:block; margin-bottom:.5rem; }
+    .media-ph small { font-size:.32rem; opacity:.5; }
+
+    .finish-btn {
+      display:block; width:100%; margin-top:2rem; padding:1.1rem;
+      background:transparent; border:3px solid var(--pink);
+      color:var(--pink); font-family:'Press Start 2P',cursive;
+      font-size:clamp(.55rem,1.8vw,.85rem); cursor:pointer;
+      letter-spacing:2px; text-shadow:0 0 10px var(--pink);
+      animation:finishPulse 2.2s ease-in-out infinite; transition:all .2s;
+    }
+    @keyframes finishPulse {
+      0%,100% { box-shadow:0 0 10px rgba(255,0,128,.3); }
+      50%     { box-shadow:0 0 36px rgba(255,0,128,.7), inset 0 0 20px rgba(255,0,128,.1); }
+    }
+    .finish-btn:hover { background:var(--pink); color:#000; box-shadow:0 0 50px var(--pink); transform:scale(1.02); }
+
+    /* ===== OVERLAYS ===== */
+    /* FIGHT! flash */
+    .fight-flash {
+      position:fixed; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      z-index:8000; pointer-events:none;
+      animation:flashAnim 1.4s ease forwards;
+    }
+    @keyframes flashAnim { 0%{opacity:0} 10%{opacity:1} 80%{opacity:1} 100%{opacity:0} }
+    .fight-flash-name {
+      font-size:clamp(.8rem,2.5vw,1.8rem); color:var(--yellow);
+      text-shadow:0 0 20px var(--orange), 3px 3px 0 var(--red);
+      animation:fightIn .4s ease;
+    }
+    .fight-flash-word {
+      font-size:clamp(1.8rem,6vw,4rem); color:var(--red);
+      text-shadow:0 0 30px var(--red), 5px 5px 0 #660000;
+      margin-top:.5rem;
+      animation:fightIn .5s ease .3s both;
+    }
+
+    /* FINISH HIM */
+    #finish-him {
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      z-index:8500; pointer-events:none; opacity:0;
+    }
+    #finish-him.show { animation:fhAnim 2.2s ease forwards; }
+    @keyframes fhAnim { 0%{opacity:0} 10%{opacity:1} 75%{opacity:1} 100%{opacity:0} }
+    .fh-text {
+      font-size:clamp(1.8rem,7vw,4.5rem); color:var(--red);
+      text-shadow:0 0 25px var(--red), 0 0 60px var(--red), 5px 5px 0 #440000;
+      text-align:center; animation:shake .5s ease-in-out infinite;
+    }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+    /* KONAMI */
+    #konami-disp {
+      position:fixed; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      z-index:8800; pointer-events:none; opacity:0;
+    }
+    #konami-disp.show { animation:konamiAnim 3.2s ease forwards; }
+    @keyframes konamiAnim {
+      0%  { opacity:0; transform:scale(.4); }
+      20% { opacity:1; transform:scale(1.15); }
+      30% { transform:scale(1); }
+      80% { opacity:1; }
+      100%{ opacity:0; }
+    }
+    .konami-code { font-size:clamp(.9rem,2.5vw,1.8rem); color:var(--yellow); text-shadow:0 0 30px var(--orange); text-align:center; }
+    .konami-msg  { font-size:clamp(.6rem,1.8vw,1.1rem); color:var(--orange); margin-top:.8rem; text-align:center; }
+
+    /* ACHIEVEMENT */
+    #achieve {
+      position:fixed; bottom:1.8rem; right:1.8rem; z-index:9200;
+      background:rgba(0,0,0,.97); border:3px solid var(--yellow);
+      padding:1rem 1.4rem; max-width:280px;
+      transform:translateX(130%); transition:transform .35s ease;
+      box-shadow:0 0 30px rgba(255,215,0,.45);
+    }
+    #achieve.show { transform:translateX(0); }
+    .ach-head { font-size:.42rem; color:var(--yellow); margin-bottom:.3rem; }
+    .ach-name { font-size:.58rem; color:#fff; }
+
+    /* TOASTY */
+    #toasty {
+      position:fixed; bottom:0; right:0; font-size:3.5rem; z-index:9300;
+      transform:translateX(110%); transition:transform .25s ease;
+    }
+    #toasty.show { transform:translateX(0); }
+
+    /* BLOOD DROPS (MK) */
+    .blood {
+      position:fixed; top:-30px; width:5px; border-radius:0 0 5px 5px;
+      background:var(--red); pointer-events:none; z-index:7500;
+      animation:bloodFall var(--d,.8s) linear forwards;
+    }
+    @keyframes bloodFall { to { transform:translateY(110vh); opacity:.25; } }
+
+    /* PARTICLES */
+    .particle {
+      position:fixed; pointer-events:none; font-size:1.2rem; z-index:200;
+      animation:pFly 1s ease forwards;
+    }
+    @keyframes pFly {
+      0%  { opacity:1; transform:translate(0,0) scale(1); }
+      100%{ opacity:0; transform:translate(var(--dx),var(--dy)) scale(0); }
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      text-align:center; padding:3rem 2rem;
+      border-top:3px solid var(--green);
+      font-size:.42rem; color:rgba(255,255,255,.35); line-height:2.8;
+    }
+    .footer .cr { color:var(--green); font-size:.5rem; }
+
+    /* ===== RESPONSIVE ===== */
+    @media(max-width:580px){
+      .hud { padding:.5rem .8rem; flex-wrap:wrap; gap:.3rem; }
+      .hud-brand { font-size:.5rem; }
+      .hud-score,.hud-coins,.hud-lives { font-size:.42rem; }
+      .modal-box { padding:1rem; }
+      .course-flex { flex-direction:column; }
+      .vs-txt { transform:rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- animated bg grid -->
+<div class="bg-grid"></div>
+
+<!-- ============ LANDING ============ -->
+<div id="landing" onclick="enterSite()">
+  <div id="land-bg"></div>
+
+  <div class="title-wrap">
+    <span class="title-lab">LAB</span>
+    <span class="title-quest">QUEST</span>
+  </div>
+
+  <div class="title-sub">DISCIPLINAS EXPERIMENTAIS — UNESP</div>
+
+  <div class="game-row">
+    <span title="Street Fighter">🥊</span>
+    <span title="Mario">🍄</span>
+    <span title="Sonic">💨</span>
+    <span title="Mortal Kombat">🐉</span>
+  </div>
+
+  <div class="sprites-row">
+    <span>⚡ ETL</span>
+    <span>VS</span>
+    <span>📡 ISA</span>
+  </div>
+
+  <div class="insert-coin">— INSERT COIN TO CONTINUE —</div>
+
+  <p class="land-copy">© 2025 AGUAS DO VALE GAMES — ALL EXPERIMENTS RESERVED<br>SCIENCE IS THE ULTIMATE POWER-UP</p>
+</div>
+
+<!-- ============ OVERLAYS ============ -->
+<div id="finish-him"><div class="fh-text">FINISH HIM!</div></div>
+
+<div id="konami-disp">
+  <div class="konami-code">↑↑↓↓←→←→ B A</div>
+  <div class="konami-msg">⚡ ULTRA MODE ATIVADO! ⚡</div>
+</div>
+
+<div id="achieve">
+  <div class="ach-head">🏆 ACHIEVEMENT UNLOCKED!</div>
+  <div class="ach-name" id="ach-name">—</div>
+</div>
+
+<div id="toasty">🥪</div>
+
+<!-- ============ MAIN SITE ============ -->
+<div id="main-site">
+<div class="content">
+
+  <!-- HUD -->
+  <header class="hud">
+    <div class="hud-score">SCORE<br><span id="score-disp">000000</span></div>
+    <div class="hud-brand">LAB QUEST</div>
+    <div class="hud-lives">♥ ♥ ♥</div>
+    <div class="hud-coins">🪙 <span id="coin-disp">00</span></div>
+  </header>
+
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <span class="marquee-inner">
+      ★ ELETROTÉCNICA ★ INSTRUMENTAÇÃO PARA SISTEMAS AMBIENTAIS ★ UNESP ★
+      ⚡ PRESS START ⚡ ★ LAB QUEST ★ CIÊNCIA É O ULTIMATE POWER-UP ★
+      🎮 EXPERIMENTOS ÉPICOS 🎮 ★ READY PLAYER ONE ★ FINISH HIM! ★
+      💧 MONITORAMENTO AMBIENTAL 💧 ★ SONIC THE HEDGEHOG ★ STREET FIGHTER ★
+      MORTAL KOMBAT ★ SUPER MARIO ★ GAME ON! ★
+    </span>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1>SELECIONE SUA DISCIPLINA</h1>
+    <p>
+      Escolha seu personagem e embarque na jornada pelo conhecimento experimental.
+      Cada experimento é uma nova batalha. Cada resultado, uma vitória épica.
+    </p>
+    <div class="hero-icons">⚡ 🔬 📡 🌊 ⚙️</div>
+  </section>
+
+  <div class="px-div"></div>
+
+  <!-- COURSE SELECT -->
+  <section class="sec">
+    <h2 class="sec-title">CHARACTER SELECT</h2>
+
+    <div class="course-flex">
+      <!-- ELETROTÉCNICA -->
+      <div class="course-card" id="card-etl" onclick="selectCourse('etl')">
+        <div class="c-num">P1 — COURSE 01</div>
+        <div class="c-ava">⚡</div>
+        <div class="c-name">ELETROTÉCNICA</div>
+        <div class="c-sub">THE CIRCUIT MASTER</div>
+        <div class="stats">
+          <div class="stat-row"><span class="stat-lbl">TENSÃO</span>
+            <div class="stat-bar"><div class="stat-fill" style="width:85%"></div></div></div>
+          <div class="stat-row"><span class="stat-lbl">CORRENTE</span>
+            <div class="stat-bar"><div class="stat-fill sf-b" style="width:75%"></div></div></div>
+          <div class="stat-row"><span class="stat-lbl">POTÊNCIA</span>
+            <div class="stat-bar"><div class="stat-fill sf-o" style="width:90%"></div></div></div>
+          <div class="stat-row"><span class="stat-lbl">PRECISÃO</span>
+            <div class="stat-bar"><div class="stat-fill sf-p" style="width:70%"></div></div></div>
+        </div>
+        <button class="sel-btn">▶ SELECT</button>
+      </div>
+
+      <div class="vs-txt">VS</div>
+
+      <!-- INSTRUMENTAÇÃO -->
+      <div class="course-card" id="card-isa" onclick="selectCourse('isa')">
+        <div class="c-num">P2 — COURSE 02</div>
+        <div class="c-ava">📡</div>
+        <div class="c-name">INSTRUMENTAÇÃO</div>
+        <div class="c-sub">THE SENSOR SAGE</div>
+        <div class="stats">
+          <div class="stat-row"><span class="stat-lbl">SENSOR</span>
+            <div class="stat-bar"><div class="stat-fill" style="width:95%"></div></div></div>
+          <div class="stat-row"><span class="stat-lbl">ANÁLISE</span>
+            <div class="stat-bar"><div class="stat-fill sf-b" style="width:80%"></div></div></div>
+          <div class="stat-row"><span class="stat-lbl">AMBIENTAL</span>
+            <div class="stat-bar"><div class="stat-fill sf-o" style="width:88%"></div></div></div>
+          <div class="stat-row"><span class="stat-lbl">CALIBRAÇÃO</span>
+            <div class="stat-bar"><div class="stat-fill sf-p" style="width:85%"></div></div></div>
+        </div>
+        <button class="sel-btn">▶ SELECT</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== ETL SECTION ====== -->
+  <section class="exp-sec" id="etl-sec">
+    <button class="back-btn" onclick="goBack()">◀ VOLTAR</button>
+    <div class="disc-hdr">
+      <h2>⚡ ELETROTÉCNICA</h2>
+      <p>Domine os princípios fundamentais da eletricidade.<br>
+         Circuitos, medições e componentes aguardam seu desafio.</p>
+      <div class="hp-bar" style="margin-top:1.2rem">
+        <div class="hp-fill" id="etl-hp" style="width:0%"></div>
+      </div>
+      <div class="hp-label" style="margin-top:.3rem">
+        <span>PROGRESSO</span><span id="etl-prog">0 / 6</span>
+      </div>
+      <div style="margin-top:.8rem">
+        <span class="tag tg">CIRCUITOS</span>
+        <span class="tag tc">MEDIÇÕES</span>
+        <span class="tag tp">AC / DC</span>
+        <span class="tag ty">SEGURANÇA</span>
+      </div>
+    </div>
+    <h3 class="sec-title">STAGE SELECT</h3>
+    <div class="stage-grid" id="etl-grid"></div>
+  </section>
+
+  <!-- ====== ISA SECTION ====== -->
+  <section class="exp-sec" id="isa-sec">
+    <button class="back-btn" onclick="goBack()">◀ VOLTAR</button>
+    <div class="disc-hdr">
+      <h2>📡 INSTRUMENTAÇÃO AMBIENTAL</h2>
+      <p>Monitore, meça e analise o ambiente ao seu redor.<br>
+         Sensores, transdutores e sistemas de aquisição formam seu arsenal.</p>
+      <div class="hp-bar" style="margin-top:1.2rem">
+        <div class="hp-fill" id="isa-hp" style="width:0%"></div>
+      </div>
+      <div class="hp-label" style="margin-top:.3rem">
+        <span>PROGRESSO</span><span id="isa-prog">0 / 6</span>
+      </div>
+      <div style="margin-top:.8rem">
+        <span class="tag tg">SENSORES</span>
+        <span class="tag tc">CALIBRAÇÃO</span>
+        <span class="tag tp">ANÁLISE</span>
+        <span class="tag ty">AMBIENTAL</span>
+      </div>
+    </div>
+    <h3 class="sec-title">STAGE SELECT</h3>
+    <div class="stage-grid" id="isa-grid"></div>
+  </section>
+
+  <div class="px-div"></div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="cr">LAB QUEST — DISCIPLINAS EXPERIMENTAIS</div>
+    <div>UNESP — Universidade Estadual Paulista</div>
+    <div>Desenvolvido com ♥ e muito ☕ por seu Auxiliar Docente</div>
+    <div style="margin-top:1rem;font-size:.38rem;opacity:.45">
+      Tente o Código Konami: ↑ ↑ ↓ ↓ ← → ← → B A
+    </div>
+    <div style="margin-top:1rem">
+      <span class="tag tp">STREET FIGHTER</span>
+      <span class="tag tc">SUPER MARIO</span>
+      <span class="tag tg">SONIC</span>
+      <span class="tag ty">MORTAL KOMBAT</span>
+    </div>
+  </footer>
+
+</div><!-- .content -->
+</div><!-- #main-site -->
+
+<!-- ====== EXPERIMENT MODAL ====== -->
+<div class="modal-bg" id="exp-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕ FECHAR</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ====================================================
+     JAVASCRIPT
+===================================================== -->
+<script>
+/* ─────────────────────────────────────────────
+   EXPERIMENT DATA
+───────────────────────────────────────────── */
+const DATA = {
+  etl: [
+    {
+      id:1, emoji:'⚡', diff:2,
+      title:'Lei de Ohm',
+      sub:'A Origem do Circuito',
+      tags:['Resistência','Tensão','Corrente'],
+      objectives:[
+        'Verificar experimentalmente a Lei de Ohm (V = R·I)',
+        'Medir tensão e corrente em diferentes resistores',
+        'Traçar o gráfico V × I e determinar a resistência',
+        'Compreender o conceito de resistência elétrica'
+      ],
+      materials:[
+        'Fonte de tensão variável (0–12 V DC)',
+        'Multímetro digital',
+        'Resistores: 100 Ω, 220 Ω, 470 Ω, 1 kΩ',
+        'Protoboard',
+        'Cabos jumper',
+        'Papel milimetrado'
+      ],
+      procedure:[
+        'Monte o circuito série com o resistor na protoboard',
+        'Configure o multímetro como voltímetro (em paralelo com o resistor)',
+        'Varie a tensão da fonte em passos de 1 V (0 a 10 V)',
+        'Para cada tensão, meça a corrente com o amperímetro em série',
+        'Anote todos os valores na tabela de dados',
+        'Repita o procedimento para cada resistor',
+        'Calcule R = V/I para cada ponto medido',
+        'Trace o gráfico V × I e calcule a inclinação (= resistência)'
+      ],
+      images:[
+        {label:'Diagrama do Circuito'},
+        {label:'Montagem Experimental'}
+      ],
+      videos:[
+        {label:'Demonstração da Montagem'},
+        {label:'Coleta de Dados — Passo a Passo'}
+      ]
+    },
+    {
+      id:2, emoji:'🔗', diff:2,
+      title:'Circuitos em Série',
+      sub:'Guerreiros em Fila',
+      tags:['Série','Kirchhoff','Tensão'],
+      objectives:[
+        'Determinar a resistência equivalente em circuito série',
+        'Verificar a distribuição de tensão entre os resistores',
+        'Confirmar que a corrente é a mesma em todos os elementos',
+        'Aplicar a Lei de Kirchhoff de tensões (LKT)'
+      ],
+      materials:[
+        'Fonte CC 5 V estabilizada',
+        'Multímetro digital',
+        'Resistores: 100 Ω, 220 Ω, 330 Ω',
+        'Protoboard e cabos jumper'
+      ],
+      procedure:[
+        'Monte os três resistores em série na protoboard',
+        'Calcule teoricamente: R_eq = R1 + R2 + R3',
+        'Aplique 5 V e meça a corrente total',
+        'Meça a tensão em cada resistor individualmente',
+        'Verifique LKT: V_fonte = V1 + V2 + V3',
+        'Calcule a potência dissipada em cada resistor: P = I²·R',
+        'Compare todos os valores com os calculados teoricamente'
+      ],
+      images:[
+        {label:'Diagrama Circuito Série'},
+        {label:'Medições de Tensão'}
+      ],
+      videos:[
+        {label:'Procedimento Experimental Completo'}
+      ]
+    },
+    {
+      id:3, emoji:'⚙️', diff:3,
+      title:'Circuitos em Paralelo',
+      sub:'A Força da União',
+      tags:['Paralelo','Corrente','Kirchhoff'],
+      objectives:[
+        'Determinar a resistência equivalente em circuito paralelo',
+        'Verificar que a tensão é igual em todos os ramos',
+        'Medir a corrente em cada ramo do circuito',
+        'Aplicar a 1ª Lei de Kirchhoff (Lei dos Nós)'
+      ],
+      materials:[
+        'Fonte CC 5 V',
+        'Multímetro digital',
+        'Resistores: 100 Ω, 220 Ω, 470 Ω',
+        'Protoboard e cabos jumper'
+      ],
+      procedure:[
+        'Monte os três resistores em paralelo na protoboard',
+        'Calcule: 1/R_eq = 1/R1 + 1/R2 + 1/R3',
+        'Aplique 5 V e meça a corrente total fornecida pela fonte',
+        'Meça a corrente em cada ramo individualmente',
+        'Verifique a 1ª Lei de Kirchhoff: I_total = I1 + I2 + I3',
+        'Meça a tensão em cada resistor (devem ser iguais)',
+        'Compare todos os resultados com os valores teóricos'
+      ],
+      images:[
+        {label:'Diagrama Circuito Paralelo'},
+        {label:'Tabela de Resultados'}
+      ],
+      videos:[
+        {label:'Demonstração — Circuito Paralelo'}
+      ]
+    },
+    {
+      id:4, emoji:'🔧', diff:1,
+      title:'Uso do Multímetro',
+      sub:'Arma Secreta do Técnico',
+      tags:['Medição','Instrumentação','Segurança'],
+      objectives:[
+        'Aprender a usar o multímetro para diferentes grandezas',
+        'Medir tensão AC e DC com configuração correta',
+        'Medir corrente e resistência com segurança',
+        'Identificar erros de medição e precisão do instrumento'
+      ],
+      materials:[
+        'Multímetro digital',
+        'Fonte de tensão AC/DC',
+        'Resistores variados',
+        'Cabos de prova (vermelho e preto)',
+        'Bateria 9 V'
+      ],
+      procedure:[
+        'Identificar os terminais: COM, V/Ω, mA, 10A',
+        'Configurar para tensão DC e medir a bateria 9 V',
+        'Medir a resistência de resistores com valores conhecidos',
+        'Medir continuidade de cabos (buzzer)',
+        'ATENÇÃO: verificar configuração antes de medir tensão AC',
+        'Registrar o fundo de escala e resolução de cada medição',
+        'Calcular o erro percentual comparando com os valores nominais'
+      ],
+      images:[
+        {label:'Partes do Multímetro'},
+        {label:'Configurações de Medição'}
+      ],
+      videos:[
+        {label:'Tutorial — Como Usar o Multímetro com Segurança'}
+      ]
+    },
+    {
+      id:5, emoji:'📈', diff:4,
+      title:'Circuitos RC e RL',
+      sub:'A Dimensão do Tempo',
+      tags:['Capacitor','Indutor','Transitório'],
+      objectives:[
+        'Observar a resposta transitória de circuitos RC e RL',
+        'Medir a constante de tempo τ experimentalmente',
+        'Comparar τ experimental com τ teórico calculado',
+        'Visualizar carregamento e descarregamento no osciloscópio'
+      ],
+      materials:[
+        'Gerador de funções (onda quadrada)',
+        'Osciloscópio digital',
+        'Resistor 10 kΩ',
+        'Capacitor 100 μF',
+        'Indutor 10 mH',
+        'Protoboard e cabos'
+      ],
+      procedure:[
+        'Monte o circuito RC em série na protoboard',
+        'Aplique onda quadrada de 100 Hz, Vpp = 5 V',
+        'Observe a forma de onda no capacitor com o osciloscópio',
+        'Meça τ: tempo para atingir 63,2% de V_max',
+        'Compare τ_medido com τ_teórico = R × C',
+        'Substitua o capacitor pelo indutor (circuito RL)',
+        'Repita as medições e calcule τ = L/R',
+        'Registre as formas de onda para o relatório'
+      ],
+      images:[
+        {label:'Formas de Onda — Circuito RC'},
+        {label:'Formas de Onda — Circuito RL'}
+      ],
+      videos:[
+        {label:'Análise no Osciloscópio — RC e RL'}
+      ]
+    },
+    {
+      id:6, emoji:'🏆', diff:5,
+      title:'Transformador',
+      sub:'BOSS FINAL — O Transmissor de Energia',
+      tags:['Transformador','AC','Eficiência'],
+      objectives:[
+        'Determinar a relação de transformação experimental',
+        'Medir tensões no primário e secundário (em vazio e em carga)',
+        'Calcular a eficiência do transformador',
+        'Verificar o comportamento com diferentes cargas'
+      ],
+      materials:[
+        'Transformador 127 V / 12 V',
+        'Multímetro AC',
+        'Osciloscópio',
+        'Carga resistiva variável (reostato)',
+        'Amperímetro AC',
+        'Fusíveis de proteção'
+      ],
+      procedure:[
+        '⚠ ATENÇÃO: experimento com tensão de rede — siga as normas de segurança',
+        'Conecte o primário à rede 127 V com proteção de fusível',
+        'Meça a tensão no secundário em vazio (sem carga)',
+        'Calcule a relação de transformação: a = V1 / V2',
+        'Conecte a carga resistiva no secundário',
+        'Meça tensão e corrente no primário e no secundário com carga',
+        'Calcule a potência de entrada: P_in = V1 × I1 × cos φ',
+        'Calcule a potência de saída: P_out = V2 × I2',
+        'Calcule a eficiência: η = (P_out / P_in) × 100%'
+      ],
+      images:[
+        {label:'Diagrama do Transformador'},
+        {label:'Montagem com Carga Resistiva'}
+      ],
+      videos:[
+        {label:'Segurança — Trabalho com Tensão de Rede'},
+        {label:'Medições no Transformador'}
+      ]
+    }
+  ],
+
+  isa: [
+    {
+      id:1, emoji:'🌡️', diff:2,
+      title:'Sensores de Temperatura',
+      sub:'Percebendo o Calor',
+      tags:['PT100','Termopar','Calibração'],
+      objectives:[
+        'Caracterizar PT100, termopar tipo K e termistor NTC',
+        'Calibrar cada sensor com termômetro de referência',
+        'Construir curvas de calibração experimentais',
+        'Comparar sensores quanto à faixa, precisão e tempo de resposta'
+      ],
+      materials:[
+        'Sensor PT100 (classe A)',
+        'Termopar tipo K com compensação de junta fria',
+        'Termistor NTC 10 kΩ',
+        'Banho termostático (0–100 °C)',
+        'Termômetro de referência calibrado',
+        'Multímetro / datalogger'
+      ],
+      procedure:[
+        'Imergir os três sensores no banho termostático',
+        'Aguardar estabilização térmica (≥ 5 min)',
+        'Medir resistência do PT100 em cada temperatura ajustada',
+        'Medir tensão do termopar com referência de junta fria conhecida',
+        'Variar temperatura de 0 °C a 100 °C em passos de 10 °C',
+        'Construir tabelas: T × R (PT100) e T × Tensão (termopar)',
+        'Plotar as curvas de calibração em papel milimetrado ou software',
+        'Calcular o coeficiente de sensibilidade de cada sensor'
+      ],
+      images:[
+        {label:'Sensores Comparados — Foto'},
+        {label:'Curvas de Calibração — Gráfico'}
+      ],
+      videos:[
+        {label:'Procedimento de Calibração — Passo a Passo'}
+      ]
+    },
+    {
+      id:2, emoji:'🧪', diff:3,
+      title:'Medição de pH',
+      sub:'A Escala Ácido-Base',
+      tags:['pH','Eletrodo','Soluções Tampão'],
+      objectives:[
+        'Realizar a calibração de 2 pontos do eletrodo de pH',
+        'Medir o pH de amostras de água com diferentes origens',
+        'Compreender o princípio de funcionamento do eletrodo combinado',
+        'Relacionar o pH medido com a qualidade da água'
+      ],
+      materials:[
+        'pHmetro com eletrodo combinado',
+        'Soluções tampão pH 4, 7 e 10 (NIST)',
+        'Amostras de água: torneira, rio, chuva, destilada',
+        'Béqueres de 100 mL',
+        'Água destilada para lavagem'
+      ],
+      procedure:[
+        'Ligar o pHmetro e aguardar 15 min de aquecimento',
+        'Lavar o eletrodo com água destilada e secar levemente',
+        'Calibrar no tampão pH 7,00 (ponto neutro)',
+        'Lavar o eletrodo e calibrar no tampão pH 4,00 (ponto ácido)',
+        'Medir o pH de cada amostra de água lavando o eletrodo entre leituras',
+        'Registrar temperatura e pH de cada amostra',
+        'Classificar as amostras quanto à qualidade segundo CONAMA',
+        'Discutir causas de desvio para valores fora da faixa 6,5–8,5'
+      ],
+      images:[
+        {label:'Eletrodo de pH — Partes'},
+        {label:'Amostras de Água Coletadas'}
+      ],
+      videos:[
+        {label:'Calibração do pHmetro — Demonstração'}
+      ]
+    },
+    {
+      id:3, emoji:'💧', diff:3,
+      title:'Turbidez da Água',
+      sub:'Visão nas Trevas',
+      tags:['Turbidez','NTU','Nefelométrico'],
+      objectives:[
+        'Calibrar o turbidímetro com padrões certificados (NTU)',
+        'Medir a turbidez de amostras naturais e preparadas',
+        'Verificar o limite de potabilidade segundo resolução CONAMA',
+        'Compreender o princípio nefelométrico de medição'
+      ],
+      materials:[
+        'Turbidímetro nefelométrico',
+        'Padrões de turbidez: 0 NTU, 10 NTU, 100 NTU, 1000 NTU',
+        'Amostras de água natural (rio, lagoa)',
+        'Cubetas de vidro limpas',
+        'Água ultra-pura para zero'
+      ],
+      procedure:[
+        'Preparar os padrões de turbidez por diluição a partir do estoque',
+        'Calibrar o turbidímetro com padrão 0 NTU (água ultra-pura)',
+        'Verificar a resposta nos padrões 10, 100 e 1000 NTU',
+        'Construir a curva de calibração (Leitura × NTU real)',
+        'Medir a turbidez das amostras naturais coletadas',
+        'Registrar todos os valores em NTU',
+        'Comparar com o limite de potabilidade (5 NTU — Port. MS 888/2021)',
+        'Discutir as fontes de turbidez encontradas'
+      ],
+      images:[
+        {label:'Turbidímetro e Cubetas'},
+        {label:'Comparação Visual das Amostras'}
+      ],
+      videos:[
+        {label:'Uso do Turbidímetro — Tutorial'}
+      ]
+    },
+    {
+      id:4, emoji:'⚗️', diff:3,
+      title:'Condutividade Elétrica',
+      sub:'O Poder dos Íons',
+      tags:['Condutividade','TDS','Íons'],
+      objectives:[
+        'Medir a condutividade elétrica de soluções aquosas (μS/cm)',
+        'Relacionar condutividade com concentração iônica (TDS)',
+        'Calibrar o condutivímetro com solução padrão de KCl',
+        'Analisar amostras de água para controle de qualidade'
+      ],
+      materials:[
+        'Condutivímetro com célula condutimétrica',
+        'Solução padrão KCl 0,01 M (1412 μS/cm a 25 °C)',
+        'Amostras de água natural e sintética',
+        'Água deionizada',
+        'Béqueres de 100 mL'
+      ],
+      procedure:[
+        'Calibrar o condutivímetro com KCl 0,01 M (1412 μS/cm)',
+        'Verificar a constante de célula K',
+        'Medir a condutividade de cada amostra de água',
+        'Verificar se a compensação de temperatura automática está ativa',
+        'Preparar soluções de NaCl em concentrações de 0,1 a 10 g/L',
+        'Medir a condutividade de cada concentração de NaCl',
+        'Construir curva condutividade × concentração',
+        'Estimar o TDS: TDS (mg/L) ≈ condutividade (μS/cm) × 0,65'
+      ],
+      images:[
+        {label:'Célula Condutimétrica — Detalhe'},
+        {label:'Curva Condutividade × Concentração'}
+      ],
+      videos:[
+        {label:'Calibração e Medição — Condutivímetro'}
+      ]
+    },
+    {
+      id:5, emoji:'🔴', diff:4,
+      title:'Sensores de Pressão',
+      sub:'Força sob Controle',
+      tags:['Pressão','4-20 mA','Transdutor'],
+      objectives:[
+        'Caracterizar um transdutor de pressão industrial 4–20 mA',
+        'Verificar a saída em mA em função da pressão aplicada',
+        'Calibrar o transdutor com manômetro de referência',
+        'Calcular linearidade, histerese e repetibilidade'
+      ],
+      materials:[
+        'Transdutor de pressão 4–20 mA (fundo de escala 10 bar)',
+        'Manômetro de referência (classe 0,25)',
+        'Fonte de alimentação 24 VDC',
+        'Multímetro digital',
+        'Resistor de carga 250 Ω (precisão 0,1%)',
+        'Bomba manual para pressurização'
+      ],
+      procedure:[
+        'Montar o loop de corrente: fonte 24 V → transdutor → resistor 250 Ω → GND',
+        'Medir a tensão no resistor: V = I × 250 Ω',
+        'Calcular a corrente: I (mA) = V / 250',
+        'Verificar zero: 0 bar → 4 mA; fundo de escala: 10 bar → 20 mA',
+        'Varia pressão de 0 a 10 bar em passos de 1 bar (subida)',
+        'Repetir em sentido inverso (descida) para calcular histerese',
+        'Registrar: pressão (ref.) × corrente (mA) para subida e descida',
+        'Calcular linearidade e histerese em percentagem do span'
+      ],
+      images:[
+        {label:'Transdutor 4–20 mA — Foto'},
+        {label:'Curva de Calibração — Gráfico'}
+      ],
+      videos:[
+        {label:'Montagem do Loop 4–20 mA'},
+        {label:'Procedimento de Calibração'}
+      ]
+    },
+    {
+      id:6, emoji:'🏆', diff:5,
+      title:'Sistema de Aquisição',
+      sub:'BOSS FINAL — O Datalogger',
+      tags:['Datalogger','Arduino','Monitoramento'],
+      objectives:[
+        'Montar um sistema completo de monitoramento ambiental',
+        'Integrar múltiplos sensores em uma plataforma de aquisição',
+        'Programar leitura, exibição e armazenamento de dados',
+        'Analisar séries temporais dos parâmetros ambientais coletados'
+      ],
+      materials:[
+        'Arduino UNO ou Mega',
+        'Sensor de temperatura e umidade DHT22',
+        'Sensor de temperatura DS18B20 (à prova d\'água)',
+        'Módulo cartão SD (SPI)',
+        'Display LCD 16×2 com interface I2C',
+        'Módulo RTC DS3231 (relógio de tempo real)',
+        'Fonte de alimentação 5 V / 2 A'
+      ],
+      procedure:[
+        'Montar o sistema de aquisição na protoboard seguindo o esquemático',
+        'Conectar o DHT22 no pino digital 3 (com pull-up 10 kΩ)',
+        'Conectar o DS18B20 no pino digital 2 (com pull-up 4,7 kΩ)',
+        'Configurar RTC DS3231 via I2C (SDA → A4, SCL → A5)',
+        'Conectar LCD 16×2 I2C (mesmo barramento)',
+        'Programar Arduino: leitura a cada 60 s, exibição no LCD',
+        'Salvar no SD: timestamp, T_DHT, UR, T_DS18B20 em formato CSV',
+        'Coletar dados por 1 hora e analisar a série temporal no Excel ou Python'
+      ],
+      images:[
+        {label:'Esquemático — Montagem Completa'},
+        {label:'Gráfico de Série Temporal Coletada'}
+      ],
+      videos:[
+        {label:'Sistema Funcionando em Tempo Real'},
+        {label:'Análise dos Dados no Python/Excel'}
+      ]
+    }
+  ]
+};
+
+/* ─────────────────────────────────────────────
+   STATE
+───────────────────────────────────────────── */
+let score = 0, coins = 0;
+let activeCourse = null;
+const done = { etl:[], isa:[] };
+let audioCtx = null;
+let konamiSeq = [];
+const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+
+/* ─────────────────────────────────────────────
+   AUDIO ENGINE (Web Audio API — 8-bit synth)
+───────────────────────────────────────────── */
+function ctx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function tone(freq, dur, type='square', vol=0.15, delay=0) {
+  try {
+    const c = ctx();
+    const o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.type = type;
+    o.frequency.setValueAtTime(freq, c.currentTime + delay);
+    g.gain.setValueAtTime(vol, c.currentTime + delay);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + delay + dur);
+    o.start(c.currentTime + delay);
+    o.stop(c.currentTime + delay + dur + 0.01);
+  } catch(e) {}
+}
+function sfx(name) {
+  switch(name) {
+    case 'coin':    // Mario coin
+      tone(988,.06,'square',.22); tone(1319,.18,'square',.22,.08); break;
+    case 'select':  // menu select
+      tone(440,.05,'square',.15); tone(660,.1,'square',.15,.06); break;
+    case 'ring':    // Sonic ring
+      tone(1047,.04,'sine',.14); tone(1319,.04,'sine',.14,.05); tone(1568,.07,'sine',.14,.10); break;
+    case 'fight': { // SF FIGHT!
+      const f=[110,147,196,294]; f.forEach((n,i)=>tone(n,.15+(i*.05),'sawtooth',.28,i*.16)); break; }
+    case 'ko':      // KO descend
+      [220,185,156,131].forEach((n,i)=>tone(n,.06,'sawtooth',.28,i*.07)); break;
+    case 'powerup': // Mario power-up
+      [262,294,330,349,392,440,494,523].forEach((n,i)=>tone(n,.09,'square',.15,i*.07)); break;
+    case 'victory': { // victory fanfare
+      const m=[[523,.1],[523,.1],[523,.1],[415,.075],[523,.025],[659,.2],[415,.075],[523,.025],[659,.4]];
+      let t=0; m.forEach(([f,d])=>{ tone(f,d,'square',.2,t); t+=d+.01; }); break; }
+    case 'noise': { // 8-bit explosion
+      try {
+        const c=ctx(), sz=c.sampleRate*.5, buf=c.createBuffer(1,sz,c.sampleRate);
+        const d=buf.getChannelData(0); for(let i=0;i<sz;i++) d[i]=Math.random()*2-1;
+        const src=c.createBufferSource(), g=c.createGain();
+        g.gain.setValueAtTime(.3,c.currentTime);
+        g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.5);
+        src.buffer=buf; src.connect(g); g.connect(c.destination); src.start();
+      } catch(e) {} break; }
+    case 'konami': {
+      const m=[659,659,0,659,0,523,659,0,784,0,392];
+      let t=0; m.forEach(n=>{ if(n>0) tone(n,.1,'square',.2,t); t+=.13; }); break; }
+  }
+}
+
+/* ─────────────────────────────────────────────
+   LANDING SETUP
+───────────────────────────────────────────── */
+(function buildLanding() {
+  const bg = document.getElementById('land-bg');
+  // stars
+  for (let i=0;i<110;i++) {
+    const s=document.createElement('div'); s.className='landing-star';
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;
+      --d:${1+Math.random()*2.5}s;--dl:${Math.random()*2}s;`;
+    bg.appendChild(s);
+  }
+  // pixel rain
+  const cols=['#00ff41','#ff0080','#ffd700','#00ffff','#ff6600'];
+  for (let i=0;i<35;i++) {
+    const p=document.createElement('div'); p.className='pixel-rain';
+    const sz=(4+Math.floor(Math.random()*3))*4;
+    p.style.cssText=`left:${Math.random()*100}%;width:${sz}px;height:${sz}px;
+      background:${cols[Math.floor(Math.random()*cols.length)]};
+      --d:${3+Math.random()*6}s;--dl:${Math.random()*6}s;`;
+    bg.appendChild(p);
+  }
+})();
+
+/* ─────────────────────────────────────────────
+   ENTER SITE
+───────────────────────────────────────────── */
+function enterSite() {
+  sfx('coin'); setTimeout(()=>sfx('coin'),160);
+  document.getElementById('landing').classList.add('fade-out');
+  setTimeout(()=>{
+    document.getElementById('landing').style.display='none';
+    document.getElementById('main-site').classList.add('on');
+    addScore(100); addCoin();
+    showAchieve('PRIMEIRO ACESSO','INSERT COIN coletado! +100 XP');
+  }, 600);
+}
+
+/* ─────────────────────────────────────────────
+   NAVIGATION
+───────────────────────────────────────────── */
+function selectCourse(c) {
+  sfx('fight'); activeCourse = c;
+  ['etl','isa'].forEach(x=>{
+    document.getElementById('card-'+x).classList.toggle('selected', x===c);
+    document.getElementById(x+'-sec').classList.toggle('on', x===c);
+  });
+  if(c==='etl') renderGrid('etl'); else renderGrid('isa');
+  setTimeout(()=>{
+    flashFight(c==='etl'?'ELETROTÉCNICA':'INSTRUMENTAÇÃO');
+    document.getElementById(c+'-sec').scrollIntoView({behavior:'smooth'});
+  }, 350);
+  addScore(50); addCoin();
+}
+
+function goBack() {
+  sfx('select'); activeCourse=null;
+  ['etl','isa'].forEach(x=>{
+    document.getElementById('card-'+x).classList.remove('selected');
+    document.getElementById(x+'-sec').classList.remove('on');
+  });
+  document.querySelector('.hero').scrollIntoView({behavior:'smooth'});
+}
+
+/* ─────────────────────────────────────────────
+   FIGHT FLASH (Street Fighter style)
+───────────────────────────────────────────── */
+function flashFight(name) {
+  const d=document.createElement('div'); d.className='fight-flash';
+  d.style.background='rgba(0,0,0,.6)';
+  d.innerHTML=`<div class="fight-flash-name">${name}</div>
+               <div class="fight-flash-word">FIGHT!</div>`;
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(), 1500);
+}
+
+/* ─────────────────────────────────────────────
+   RENDER STAGE GRID
+───────────────────────────────────────────── */
+function renderGrid(c) {
+  const grid = document.getElementById(c+'-grid');
+  grid.innerHTML='';
+  DATA[c].forEach(exp=>{
+    const isDone = done[c].includes(exp.id);
+    const stars  = '⭐'.repeat(exp.diff)+'☆'.repeat(5-exp.diff);
+    const card   = document.createElement('div');
+    card.className = 'stage-card'+(isDone?' done':'');
+    card.onclick   = ()=>openModal(c, exp.id);
+    card.innerHTML = `
+      <div class="s-status">${isDone?'✅':'🎮'}</div>
+      <div class="s-num">${String(exp.id).padStart(2,'0')}</div>
+      <div class="s-title">${exp.emoji} ${exp.title}</div>
+      <div class="s-sub">${exp.sub}</div>
+      <div class="s-stars" title="Dificuldade">${stars}</div>
+      <div style="margin-top:.4rem">${exp.tags.map(t=>`<span class="tag tg">${t}</span>`).join('')}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+/* ─────────────────────────────────────────────
+   EXPERIMENT MODAL
+───────────────────────────────────────────── */
+function openModal(c, id) {
+  sfx('ring');
+  const exp = DATA[c].find(e=>e.id===id);
+  if(!exp) return;
+  setTimeout(()=>sfx('fight'), 320);
+
+  const isDone = done[c].includes(id);
+  const stars  = '⭐'.repeat(exp.diff)+'☆'.repeat(5-exp.diff);
+
+  const li  = arr => arr.map(x=>`<li>${x}</li>`).join('');
+  const oli = arr => arr.map(x=>`<li>${x}</li>`).join('');
+  const imgs = exp.images.map(im=>`
+    <div class="media-ph">
+      <span class="ico">🖼️</span>${im.label}
+      <br><small>[ Adicione a imagem aqui ]</small>
+    </div>`).join('');
+  const vids = exp.videos.map(v=>`
+    <div class="media-ph">
+      <span class="ico">🎬</span>${v.label}
+      <br><small>[ Cole o vídeo ou URL aqui ]</small>
+    </div>`).join('');
+
+  document.getElementById('modal-body').innerHTML=`
+    <div class="m-round">ROUND ${id} — ${c.toUpperCase()} — ${stars}</div>
+    <div class="m-fight">FIGHT!</div>
+    <div class="m-title">
+      ${exp.emoji} ${exp.title}
+      <br><small style="font-size:.48rem;color:rgba(255,255,255,.5)">${exp.sub}</small>
+    </div>
+    <div style="text-align:center;margin-bottom:1rem">
+      ${exp.tags.map(t=>`<span class="tag tg">${t}</span>`).join('')}
+    </div>
+    <div class="m-stitle">OBJETIVOS</div>
+    <ul class="m-list">${li(exp.objectives)}</ul>
+    <div class="m-stitle">MATERIAIS NECESSÁRIOS</div>
+    <ul class="m-list">${li(exp.materials)}</ul>
+    <div class="m-stitle">PROCEDIMENTO</div>
+    <ol class="step-list">${oli(exp.procedure)}</ol>
+    <div class="m-stitle">IMAGENS</div>
+    <div class="media-grid">${imgs}</div>
+    <div class="m-stitle">VÍDEOS / MULTIMÍDIA</div>
+    <div class="media-grid">${vids}</div>
+    <button class="finish-btn" onclick="completeExp('${c}',${id})">
+      ${isDone ? '✅ EXPERIMENTO CONCLUÍDO!' : '🏆 MARCAR COMO CONCLUÍDO — FINISH HIM!'}
+    </button>`;
+
+  document.getElementById('exp-modal').classList.add('open');
+  addScore(25);
+}
+
+function closeModal() {
+  sfx('select');
+  document.getElementById('exp-modal').classList.remove('open');
+}
+document.getElementById('exp-modal').addEventListener('click', e=>{
+  if(e.target===document.getElementById('exp-modal')) closeModal();
+});
+
+/* ─────────────────────────────────────────────
+   COMPLETE EXPERIMENT (Mortal Kombat FINISH HIM)
+───────────────────────────────────────────── */
+function completeExp(c, id) {
+  if(done[c].includes(id)) { closeModal(); return; }
+  sfx('victory');
+  done[c].push(id);
+
+  // FINISH HIM overlay
+  const fh = document.getElementById('finish-him');
+  fh.classList.add('show');
+  setTimeout(()=>fh.classList.remove('show'), 2200);
+
+  // MK blood drops
+  for(let i=0;i<25;i++) setTimeout(()=>bloodDrop(), i*45);
+
+  // update progress bar
+  const total = DATA[c].length;
+  const pct   = done[c].length / total * 100;
+  document.getElementById(c+'-hp').style.width = pct+'%';
+  document.getElementById(c+'-prog').textContent = `${done[c].length} / ${total}`;
+
+  addScore(500); addCoin(); addCoin(); addCoin();
+  const exp = DATA[c].find(e=>e.id===id);
+  showAchieve('EXPERIMENTO CONCLUÍDO!', `${exp.emoji} ${exp.title} — +500 XP`);
+
+  if(done[c].length === total) {
+    setTimeout(()=>{
+      sfx('powerup');
+      showAchieve('CURSO MASTERIZADO!', `🏆 PARABÉNS! ${c.toUpperCase()} COMPLETO!`);
+      burst(window.innerWidth/2, window.innerHeight/2, 35);
+    }, 2400);
+  }
+
+  renderGrid(c);
+  setTimeout(closeModal, 2600);
+}
+
+/* ─────────────────────────────────────────────
+   HUD
+───────────────────────────────────────────── */
+function addScore(n) {
+  score += n;
+  document.getElementById('score-disp').textContent = String(score).padStart(6,'0');
+}
+function addCoin() {
+  coins++;
+  document.getElementById('coin-disp').textContent = String(coins).padStart(2,'0');
+  sfx('coin');
+  const el = document.getElementById('coin-disp');
+  const r  = el.getBoundingClientRect();
+  burst(r.left+10, r.top+10, 4);
+}
+
+/* ─────────────────────────────────────────────
+   ACHIEVEMENT (Mario star style)
+───────────────────────────────────────────── */
+function showAchieve(head, name) {
+  const el = document.getElementById('achieve');
+  el.querySelector('.ach-head').textContent = '🏆 '+head;
+  document.getElementById('ach-name').textContent = name;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 3800);
+}
+
+/* ─────────────────────────────────────────────
+   PARTICLES
+───────────────────────────────────────────── */
+function burst(x, y, n=10) {
+  const icons = ['⭐','🪙','💥','✨','🎮','⚡','💎','🌟'];
+  for(let i=0;i<n;i++) {
+    const p = document.createElement('div'); p.className='particle';
+    p.textContent = icons[Math.floor(Math.random()*icons.length)];
+    const ang = (Math.PI*2/n)*i, dist = 70+Math.random()*90;
+    p.style.cssText=`left:${x}px;top:${y}px;
+      --dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 1000);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   BLOOD DROPS (Mortal Kombat)
+───────────────────────────────────────────── */
+function bloodDrop() {
+  const d=document.createElement('div'); d.className='blood';
+  d.style.cssText=`left:${Math.random()*100}%;
+    height:${12+Math.random()*50}px;
+    --d:${.5+Math.random()*.9}s;`;
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(), 2000);
+}
+
+/* ─────────────────────────────────────────────
+   KONAMI CODE (↑↑↓↓←→←→ B A)
+───────────────────────────────────────────── */
+document.addEventListener('keydown', e=>{
+  konamiSeq.push(e.key);
+  if(konamiSeq.length > KONAMI.length) konamiSeq.shift();
+  if(JSON.stringify(konamiSeq)===JSON.stringify(KONAMI)) ultraMode();
+});
+
+function ultraMode() {
+  sfx('konami');
+  const kd = document.getElementById('konami-disp');
+  kd.classList.add('show');
+  setTimeout(()=>kd.classList.remove('show'), 3200);
+
+  // TOASTY!
+  const t = document.getElementById('toasty');
+  t.classList.add('show'); sfx('noise');
+  setTimeout(()=>t.classList.remove('show'), 1600);
+
+  // Massive particles + blood rain
+  for(let i=0;i<6;i++) setTimeout(()=>burst(Math.random()*window.innerWidth, Math.random()*window.innerHeight, 20), i*300);
+  for(let i=0;i<60;i++) setTimeout(bloodDrop, i*35);
+
+  addScore(9999);
+  showAchieve('ULTRA MODE ATIVADO!','↑↑↓↓←→←→ B A — +9999 XP!');
+  konamiSeq=[];
+}
+
+/* ─────────────────────────────────────────────
+   HOVER SFX (Sonic rings on card hover)
+───────────────────────────────────────────── */
+document.addEventListener('mouseover', e=>{
+  const c = e.target.closest('.stage-card');
+  if(c && !c._sfxThrottle) {
+    c._sfxThrottle=true;
+    if(Math.random()>.55) sfx('ring');
+    setTimeout(()=>{ c._sfxThrottle=false; }, 900);
+  }
+});
+
+/* ─────────────────────────────────────────────
+   RANDOM HINT AFTER 20s
+───────────────────────────────────────────── */
+setTimeout(()=>{
+  if(!activeCourse) showAchieve('DICA SECRETA','Tente o Código Konami! ↑↑↓↓←→←→ B A');
+}, 20000);
+</script>
+</body>
+</html>
