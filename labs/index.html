@@ -1337,11 +1337,16 @@ function _playBuf(key) {
 function _load(key) {
   if (_buf[key] !== undefined) return;   // já tentou
   _buf[key] = 'pending';
-  fetch('audio/' + key + '.mp3')
-    .then(r => r.ok ? r.arrayBuffer() : Promise.reject())
-    .then(ab => ctx().decodeAudioData(ab))
-    .then(decoded => { _buf[key] = decoded; })
-    .catch(() => { _buf[key] = null; });
+  /* Tenta .mp3 primeiro, depois .m4a (formato nativo do GarageBand/iOS) */
+  const tryFetch = (exts) => {
+    if (!exts.length) { _buf[key] = null; return; }
+    fetch('audio/' + key + '.' + exts[0])
+      .then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+      .then(ab => ctx().decodeAudioData(ab))
+      .then(decoded => { _buf[key] = decoded; })
+      .catch(() => tryFetch(exts.slice(1)));
+  };
+  tryFetch(['mp3', 'm4a', 'ogg']);
 }
 
 /* Pré-carrega todos os arquivos em background assim que a página abre */
